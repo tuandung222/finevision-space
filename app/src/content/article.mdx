@@ -30,7 +30,6 @@ import Accordion from '../components/Accordion.astro'
   TLDR; Today, we release FineVision, a new multimodal dataset with 17M images, 24 million samples, 90M question-answer turns and 10B answer tokens. We have extensively cleaned, analysed, and rated every single turn across 4 qualitative metrics with a score from 1-5 to enable the construction and study of individual training mixtures. 
   
   Additionally, we ran extensive ablations and compared the performance of models trained on our dataset with common open source alternatives, and achieved better model performance and higher quantity and diversity of data.
-
 </Sidenote>
 
 ## Introduction
@@ -271,18 +270,18 @@ To investigate data leakage from benchmarks into this dataset, we construct a de
 
 TODO: Insert the Images here
 
-| Name          | Samples	| Contamination Rate | 	
-|---------------|---------|--------------------|
-| Cauldron      | 1.8M		| 3.05%		           |
-| Llava-Vision 	| 3.9M		| 2.15%		           |
-| Cambrian-7M  	| 7.0M	  | 2.29%		           |
-| FineVision		| 24.3M 	| 1.02%	      	     |
+| Name          | Samples	| Contamination Rate | Performance Drop |
+|---------------|---------|--------------------|------------------|
+| Cauldron      | 1.8M		| 3.05%		           | 2.39%            |
+| Llava-Vision 	| 3.9M		| 2.15%		           | 2.72%            |
+| Cambrian-7M  	| 7.0M	  | 2.29%		           | 2.78%            |
+| FineVision		| 24.3M 	| 1.02%	      	     | 1.45%            |
 
 Additionally, we experimented with removing all found samples from all datasets to see if the outcome is different from the results above, but we observe the same distribution.
 
 <HtmlEmbed src="against-baselines-deduplicated.html" desc="Average Rank of Models trained on different deduplicated open source datasets." />
 
-TODO: After removing these duplicates, the performance of the models dropped by … % over all benchmarks.
+After removing these duplicates, the average performance of the models over all benchmarks dropped by 2.78% for Cambrian, 2.39% for Cauldron, 1.45% for FineVision and 2.72% for LLaVa, indicating that while FineVision is already performing best, test-set contamination has the smallest effect in this dataset.
 
 ### How diverse are the datasets?
 Similarly to the comparison of the size, we also wanted to evaluate the datasets for diversity. Evaluating the diversity of a dataset is a field of study for itself, which we will not dive into here, rather we borrow techniques from computer vision and use the already computed SSCD embeddings as a proxy of visual diversity. The SSCD embeddings should provide a good approximation since they are specifically optimized for distinguishing between visually similar content, through their differential entropy regularization that tries to ensure the full utilization of the embedding space. The resulting approximately uniform distribution of the embeddings promotes consistent separation between descriptor vectors, making distances from different embedding regions more comparable, which is crucial for meaningful diversity measurements. To not rely on a subsample of the dataset in estimating the diversity, we analyse the covariance metric of the full embeddings since this can be computed over the whole dataset in a numerically stable way (using Welford’s algorithm). From this covariance matrix, we can calculate the eigenvalues for analysis. We get the effective rank of the covariance matrix, which measures how uniformly the variance is distributed across dimensions, as well as the participation ratio, which measures how many dimensions actively contribute to the overall variance. The effective rank (entropy based) estimates the uniformity of the variance distribution, while the participation ratio (concentration-based) estimates the breadth of the variance participation . To obtain a single ‘diversity score’ for the datasets, we normalize the effective rank and participation ratio with the embedding dimension and compute their geometric mean. We observe that FineVision is not only the biggest, but also the most diverse dataset.
