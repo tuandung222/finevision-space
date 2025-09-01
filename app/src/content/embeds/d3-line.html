@@ -146,10 +146,17 @@
       controls.appendChild(legendInline);
       controls.appendChild(labelMetric);
 
-      // Create SVG
+      // Create SVG with marker definitions
       const svg = d3.select(container).append('svg')
         .attr('width', '100%')
         .style('display', 'block');
+
+      // Add marker definitions for different shapes
+      const defs = svg.append('defs');
+      
+      // Academic marker shapes
+      const markerShapes = ['circle', 'square', 'triangle', 'diamond', 'inverted-triangle'];
+      const markerSize = 8;
 
       // Groups
       const gRoot = svg.append('g');
@@ -200,15 +207,29 @@
       let xScale = d3.scaleLinear();
       let yScale = d3.scaleLinear();
 
-      // Line generators
-      const lineGenSmooth = d3.line()
-        .curve(d3.curveCatmullRom.alpha(0.05))
+      // Line generators - simple linear connections
+      const lineGen = d3.line()
         .x((d) => xScale(d.step))
         .y((d) => yScale(d.value));
-      const lineGenStep = d3.line()
-        .curve(d3.curveStepAfter)
-        .x((d) => xScale(d.step))
-        .y((d) => yScale(d.value));
+
+      // Function to draw different marker shapes
+      function drawMarker(selection, shape, size) {
+        const s = size / 2;
+        switch (shape) {
+          case 'circle':
+            return selection.append('circle').attr('r', s);
+          case 'square':
+            return selection.append('rect').attr('x', -s).attr('y', -s).attr('width', size).attr('height', size);
+          case 'triangle':
+            return selection.append('path').attr('d', `M0,${-s * 1.2} L${s * 1.1},${s * 0.6} L${-s * 1.1},${s * 0.6} Z`);
+          case 'diamond':
+            return selection.append('path').attr('d', `M0,${-s * 1.2} L${s * 1.1},0 L0,${s * 1.2} L${-s * 1.1},0 Z`);
+          case 'inverted-triangle':
+            return selection.append('path').attr('d', `M0,${s * 1.2} L${s * 1.1},${-s * 0.6} L${-s * 1.1},${-s * 0.6} Z`);
+          default:
+            return selection.append('circle').attr('r', s);
+        }
+      }
 
       // Hover elements
       const hoverLine = gHover.append('line').attr('stroke-width', 1);
@@ -222,7 +243,7 @@
         const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)';
 
         width = container.clientWidth || 800;
-        height = Math.max(260, Math.round(width / 3));
+        height = Math.max(360, Math.round(width / 2.2));
         svg.attr('width', width).attr('height', height);
 
         const innerWidth = width - margin.left - margin.right;
@@ -359,32 +380,104 @@
 
         const { innerWidth, innerHeight } = updateScales();
 
-        // Bind lines
+        // Bind lines and markers
         const series = runs.map((r, i) => ({
           run: r,
           color: pool[i % pool.length],
+          marker: markerShapes[i % markerShapes.length],
           values: (map[r]||[])
             .slice()
             .sort((a,b)=>a.step-b.step)
             .map(pt => isRankStrict ? { step: pt.step, value: Math.round(pt.value) } : pt)
-            .filter(pt => !isRankStrict || (pt.step % 1000 === 0))
         }));
+
+        // Draw lines
         const paths = gLines.selectAll('path.run-line').data(series, d=>d.run);
-        const gen = isRank ? lineGenStep : lineGenSmooth;
         paths.enter().append('path').attr('class','run-line').attr('fill','none').attr('stroke-width',2)
           .attr('stroke', d=>d.color).attr('opacity',0.9)
-          .attr('d', d=>gen(d.values))
+          .attr('d', d=>lineGen(d.values))
           .merge(paths)
           .transition().duration(200)
           .attr('stroke', d=>d.color)
-          .attr('d', d=>gen(d.values));
+          .attr('d', d=>lineGen(d.values));
         paths.exit().remove();
 
-        // No point markers for rank metrics (and none for others)
+        // Draw markers for each data point
         gPoints.selectAll('*').remove();
+        series.forEach((s, seriesIndex) => {
+          const pointGroup = gPoints.selectAll(`.points-${seriesIndex}`)
+            .data(s.values)
+            .join('g')
+            .attr('class', `points-${seriesIndex}`)
+            .attr('transform', d => `translate(${xScale(d.step)},${yScale(d.value)})`);
+          
+          drawMarker(pointGroup, s.marker, markerSize)
+            .attr('fill', s.color)
+            .attr('stroke', s.color)
+            .attr('stroke-width', 1.5)
+            .style('cursor', 'crosshair');
+        });
 
-        // Inline legend content (row, right side) compact
-        legendInline.innerHTML = series.map(s => `<span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap;"><span style="width:18px;height:10px;background:${s.color};border-radius:3px;display:inline-block"></span><span>${s.run}</span></span>`).join('');
+        // Inline legend content with marker shapes
+        legendInline.innerHTML = '';
+        series.forEach(s => {
+          const legendItem = document.createElement('span');
+          legendItem.style.cssText = 'display:inline-flex;align-items:center;gap:6px;white-space:nowrap;';
+          
+          // Create small SVG for marker shape
+          const markerSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          markerSvg.setAttribute('width', '16');
+          markerSvg.setAttribute('height', '12');
+          markerSvg.style.display = 'inline-block';
+          
+          const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          g.setAttribute('transform', 'translate(8,6)');
+          
+          let shape;
+          const size = 6;
+          const halfSize = size / 2;
+          switch(s.marker) {
+            case 'circle':
+              shape = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+              shape.setAttribute('r', halfSize);
+              break;
+            case 'square':
+              shape = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+              shape.setAttribute('x', -halfSize);
+              shape.setAttribute('y', -halfSize);
+              shape.setAttribute('width', size);
+              shape.setAttribute('height', size);
+              break;
+            case 'triangle':
+              shape = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+              shape.setAttribute('d', `M0,${-halfSize * 1.2} L${halfSize * 1.1},${halfSize * 0.6} L${-halfSize * 1.1},${halfSize * 0.6} Z`);
+              break;
+            case 'diamond':
+              shape = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+              shape.setAttribute('d', `M0,${-halfSize * 1.2} L${halfSize * 1.1},0 L0,${halfSize * 1.2} L${-halfSize * 1.1},0 Z`);
+              break;
+            case 'inverted-triangle':
+              shape = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+              shape.setAttribute('d', `M0,${halfSize * 1.2} L${halfSize * 1.1},${-halfSize * 0.6} L${-halfSize * 1.1},${-halfSize * 0.6} Z`);
+              break;
+            default:
+              shape = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+              shape.setAttribute('r', halfSize);
+          }
+          shape.setAttribute('fill', s.color);
+          shape.setAttribute('stroke', s.color);
+          shape.setAttribute('stroke-width', '1');
+          
+          g.appendChild(shape);
+          markerSvg.appendChild(g);
+          
+          const label = document.createElement('span');
+          label.textContent = s.run;
+          
+          legendItem.appendChild(markerSvg);
+          legendItem.appendChild(label);
+          legendInline.appendChild(legendItem);
+        });
 
         // Hover
         const stepSet = new Set(); series.forEach(s=>s.values.forEach(v=>stepSet.add(v.step)));
