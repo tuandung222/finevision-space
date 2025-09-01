@@ -263,7 +263,7 @@ Each of our ablations trains a 450M model with maximal image size of 1536x1536 p
 ### How does FineVision compare against the Baselines?
 Compared against existing VLM training datasets, FineVision produces significantly higher benchmark ranks than the other options.
 
-<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Rank of Models trained on different open source datasets." />
+<HtmlEmbed src="against-baselines.html" desc="Average Rank of Models trained on different open source datasets." />
 
 ### How contaminated are the datasets?
 To investigate data leakage from benchmarks into this dataset, we construct a deduplication pipeline based on the sample images. We embed the images of 66 image-test datasets from the lmms-eval framework using the SSCD descriptor, and compute the cosine similarity between our samples and the test-set embeddings. Whenever a sample has a similarity higher than a threshold of 0.95 it is assumed to be a duplicate. While our tests with various thresholds show that this is flagging some samples that are not actual duplicates (especially if the image depicts similar but different images in detail, like graphs or tables), we preferred to err on the side of caution. We open-source the deduplication pipeline here as well as the precomputed test-set embedding’s here.
@@ -279,7 +279,7 @@ TODO: Insert the Images here
 
 Additionally, we experimented with removing all found samples from all datasets to see if the outcome is different from the results above, but we observe the same distribution.
 
-<HtmlEmbed src="against-baselines-deduplicated.html" title="D3 Line" desc="TODO - Average Rank of Models trained on different deduplicated open source datasets." />
+<HtmlEmbed src="against-baselines-deduplicated.html" desc="Average Rank of Models trained on different deduplicated open source datasets." />
 
 TODO: After removing these duplicates, the performance of the models dropped by … % over all benchmarks.
 
@@ -297,12 +297,12 @@ Similarly to the comparison of the size, we also wanted to evaluate the datasets
 Since the training of a VLM already builds upon pretrained vision and language backbones, datasets are usually not completely unstructured, but follow an image+question and answer structure. Recent works have shown that consolidating multiple questions for the same image into a multi-turn conversation where the image is shown only once improves model performance, and additionally also reduces the datasets memory footprint. We therefore experiment with deduplicating every image in our dataset internally using the same SSCD descriptors, manually inspect the resulting clusters and merge fitting samples into a multi-turn conversation.
 Even when training for longer than the other ablations, we did not observe a significant difference, if at all rather one in favour against merging multiple samples together.
 
-<HtmlEmbed src="internal-deduplication.html" title="D3 Line" desc="TODO - Average Ranking of Models trained with internally deduplicated / merged samples." />
+<HtmlEmbed src="internal-deduplication.html" desc="Average Ranking of Models trained with internally deduplicated / merged samples." />
 
 ### Should you train on multilingual data if your language backbone was not?
 There are some multilingual datasets in our mixture, but since our Language Backbone is only trained on English data, we experimented with removing all the multilingual, mainly Chinese, subsets. This does also not seem to make a big difference, with slight advantages to leaving the data, even if it was not part of the Language Backbone's initial training. In our training setup with this configuration, one epoch over the whole dataset equals ~12k steps, so the benefit of unseen languages only materializes after the first full epoch.
 
-<HtmlEmbed src="remove-ch.html" title="D3 Line" desc="TODO - Average Rank of Models trained with and without multilingual samples" />
+<HtmlEmbed src="remove-ch.html" desc="Average Rank of Models trained with and without multilingual samples" />
 
 ### How can you assess the quality of the dataset?
 
@@ -324,7 +324,7 @@ This is the distribution of scores across the different filters for FineVision.
 
 To try to quantify the quality of the training data and the effect it has on the model’s performance, we run extensive ablations on our generated ratings.
 
-<HtmlEmbed src="all-ratings.html" title="D3 Line" desc="TODO - Average Rank of Models trained with samples that have all 4 ratings above a certain threshold." />
+<HtmlEmbed src="all-ratings.html" desc="Average Rank of Models trained with samples that have all 4 ratings above a certain threshold." />
 
 Interestingly, both when only training on turns that have any of the 4 ratings  under a certain threshold, as well as when training on turns where only a single rating at a time is used, we observe the same behaviour. Simply training on all samples of the dataset outperforms in benchmarks. This could mean multiple things. 
 We can almost see the same distribution in the ranks across all filters: From best to worst with an increase in the rating threshold. For example the visual dependency and the image correspondence rating both result in exactly the same distribution of rankings, corresponding to the natural order of options, 1 through 5. This could indicate that with a sufficiently large dataset that you train on long enough, it hurts more to remove samples, even if they were judged to be of low quality, than to train on them. 
@@ -332,21 +332,24 @@ The notion of quality for VLM datasets is nuanced in general. If we compare trai
 Alternatively, while we used state-of-the-art open source models to judge our datapoints, we still had to find a compromise between model quality and cost due to the raw required effort to rate every single turn of FineVision. The chosen models could simply not be powerful enough to recognize and judge the quality of samples.
 Even though our first proposal to judge the quality of multimodal data on a per-turn basis did not yield any improvement in model performance, we believe that this is still an exciting and important direction of research and hope the release of FineVision encourages the community to develop techniques for this at large scale.
 
-<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Rank of Models 4 plots for the rankings." />
+<HtmlEmbed src="formatting-filters.html" title="Formatting Filter" desc="Average Rank of Models that have the Formatting Filter above a threshold." />
+<HtmlEmbed src="relevance-filters.html" title="Relevance Filter" desc="Average Rank of Models that have the Relevance Filter above a threshold." />
+<HtmlEmbed src="visual-dependency-filters.html" title="Visual Dependency Filter" desc="Average Rank of Models that have the Visual Dependency Filter above a threshold." />
+<HtmlEmbed src="image-correspondence-filters.html" title="Image Correspondence Filter" desc="Average Rank of Models that have the Image-Correspondence Filter above a threshold." />
 
 ### Should you train in multiple stages?
 The standard training procedure of a VLM usually follows at least two stages. First, you train only the connecting module, potentially in addition the image encoder, and then you train the whole model in a second stage. Some work has even introduced an additional Stage 2.5, where you train the full model on a smaller subset of higher quality data. To investigate this on small models, we experiment both with single, dual and triple stage training.
 
 #### 1 Stage vs 2 Stages
 
-<HtmlEmbed src="ss_vs_s1.html" title="D3 Line" desc="TODO - Average Rank of a model trained for 20K steps in a single stage, and a model trained for the same 20k steps on top of pretraining the Modality Projection and Vision Encoder for 10k steps." />
+<HtmlEmbed src="ss-vs-s1.html" desc="Average Rank of a model trained for 20K steps in a single stage, and a model trained for the same 20k steps on top of pretraining the Modality Projection and Vision Encoder for 10k steps." />
 
 We observe that at this model size, with this amount of available data, training only a single stage actually outperforms a multi stage approach.
 
 #### 2 Stages vs 2.5 Stages
 We also experiment if splitting the second stage results in any performance improvements. We take the baseline, and continue training for another 20k steps, both with the unfiltered (>= 1) as well as filtered subsets of FineVision according to our ratings.
 
-<HtmlEmbed src="s25_ratings.html" title="D3 Line" desc="TODO - Average Rank if a model trained for an additional 20K steps on top of unfiltered training for 20K steps." />
+<HtmlEmbed src="s25-ratings.html" desc="Average Rank if a model trained for an additional 20K steps on top of unfiltered training for 20K steps." />
 
 Like in the previous results, we observe that the best outcome is simply achieved by training on as much data as possible.
 
