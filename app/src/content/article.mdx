@@ -39,6 +39,7 @@ Even though open-weights Vision-Language Models (VLMs) are becoming ever more po
 ### Data Collection
 We manually collect over 180 image-text datasets from the recent literature and create new subsets in lacking domains.
 
+<Wide>
 <Accordion title="FineVision Subsets">
 |Subset Name                           |Total Images|Total Samples|Total Turns|Total Question Tokens|Total Answer Tokens|Category              |
 |--------------------------------------|------------|-------------|-----------|---------------------|-------------------|----------------------|
@@ -228,6 +229,7 @@ We manually collect over 180 image-text datasets from the recent literature and 
 |text_wizardlm_evol                    |0           |69,999       |69,999     |7,753,963            |21,955,856         |Text-only             |
 |text_OpenMathInstruct-2               |0           |1,000,000    |1,000,000  |74,905,850           |413,132,418        |Text-only             |
 </Accordion>
+</Wide>
 
 ### Cleaning
 After gathering all the sub-datasets, every turn is cleaned. We remove all individual turns whose combined question and answer length exceeds 8192 tokens. We resize big images to have a longest side of 2048 pixels while keeping the aspect ratio, and discard images with corrupted metadata. This results in a clean final dataset with a maximum turn length of 8192 tokens and a maximum image dimension of 2048 pixels on the longest side.
