@@ -40,7 +40,7 @@ Even though open-weights Vision-Language Models (VLMs) are becoming ever more po
 We manually collect over 180 image-text datasets from the recent literature and create new subsets in lacking domains.
 
 <Accordion title="FineVision Subsets">
-|Subset Name                           |Total Images|Total Samples|Total Turns|Total Question Tokens|Total Answer Tokens|Cathegory             |
+|Subset Name                           |Total Images|Total Samples|Total Turns|Total Question Tokens|Total Answer Tokens|Category              |
 |--------------------------------------|------------|-------------|-----------|---------------------|-------------------|----------------------|
 |coco_colors                           |118,287     |118,287      |118,287    |1,301,157            |6,376,672          |Captioning & Knowledge|
 |densefusion_1m                        |1,058,751   |1,058,751    |1,058,751  |10,692,478           |263,718,217        |Captioning & Knowledge|
@@ -239,11 +239,9 @@ There are multiple ways to count the data in a multimodal dataset. The most comm
 
 In total, FineVision has 17.3M images, 24.3M samples, 88.9M turns, and 9.5B answer tokens. Based on these 4 distributions, multiple different mixtures are possible. In conjunction with the provided ratings, we encourage the community to experiment with downsampling large categories, for example according to quality and diversity criteria, and with upsampling high quality samples in small categories.
 
----
 <FullWidth>
   <HtmlEmbed src="d3-pie.html" desc="Distribution of Categories in FineVision" align="center" />
 </FullWidth>
----
 
 ## Experimental Setup
 To evaluate how our dataset compares to other open-source datasets, we conduct various experiments.
@@ -255,7 +253,7 @@ For most of the ablations and experiments, we train a 450M parameter VLM, since 
 We compare our dataset against 3 popular open source alternatives: [The Cauldron](https://huggingface.co/datasets/HuggingFaceM4/the_cauldron), [LLaVA-OneVision](https://huggingface.co/datasets/lmms-lab/LLaVA-OneVision-Data) and [Cambrian-7M](https://huggingface.co/datasets/nyu-visionx/Cambrian-10M). We analyse all of them with the same pipeline concerning potential test-set contamination. Note that these rates are not the actual contaminations. While the pipeline discovers some similarities between the images of the test sets and the train sets, this does not mean that they are actually samples from the test set, since these consist of both image and the corresponding text. This is rather used as an upper bound on potential train/test overlap and as a relative comparison between the four datasets. 
 
 ### Evaluations
-To evaluate our ablations in a reproducible manner, we utilize lmms-eval during training. We evaluate on a diverse set of 11 benchmarks: AI2D, ChartQA, DocVQA, InfoVQA, MME, MMMU, MMStar, OCRBench, ScienceQA, TextVQA and Seedbench. Since these benchmarks cover different topics and produce results on different scales, e.g. AI2D returns the accuracy of the exact matches (0-100), but MME returns a continuous score (0-2800), aggregating them is not trivial. In our ablations the relative performance between the different configurations matters, so we determine the rank of every model in each training step and average it over all the benchmarks. This way we can judge where different configurations rank among each other over the course of training, and how big the difference between them is.
+To evaluate our ablations in a reproducible manner, we utilize lmms-eval during training. We evaluate on a diverse set of 10 benchmarks: AI2D, ChartQA, DocVQA, InfoVQA, MME, MMMU, MMStar, OCRBench, TextVQA and Seedbench. Since these benchmarks cover different topics and produce results on different scales, e.g. AI2D returns the accuracy of the exact matches (0-100), but MME returns a continuous score (0-2800), aggregating them is not trivial. In our ablations the relative performance between the different configurations matters, so we determine the rank of every model in each training step and average it over all the benchmarks. This way we can judge where different configurations rank among each other over the course of training, and how big the difference between them is.
 
 ## Experiments
 Each of our ablations trains a 450M model with maximal image size of 1536x1536 pixel (without resizing smaller images) and a maximal input token length of 4096. In all single stage configurations we train for 20k Steps on 32 H100s for approximately 20h while evaluating all 11 benchmarks every 1k Steps. If not specified otherwise, the “Baseline” in our intra dataset ablations refers to a training run on the full unfiltered and unchanged dataset
@@ -263,7 +261,7 @@ Each of our ablations trains a 450M model with maximal image size of 1536x1536 p
 ### How does FineVision compare against the Baselines?
 Compared against existing VLM training datasets, FineVision produces significantly higher benchmark ranks than the other options.
 
-<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Rank of Models trained on different open source datasets." />
+<HtmlEmbed src="against-baselines.html" title="D3 Line" desc="TODO - Average Rank of Models trained on different open source datasets." />
 
 ### How contaminated are the datasets?
 To investigate data leakage from benchmarks into this dataset, we construct a deduplication pipeline based on the sample images. We embed the images of 66 image-test datasets from the lmms-eval framework using the SSCD descriptor, and compute the cosine similarity between our samples and the test-set embeddings. Whenever a sample has a similarity higher than a threshold of 0.95 it is assumed to be a duplicate. While our tests with various thresholds show that this is flagging some samples that are not actual duplicates (especially if the image depicts similar but different images in detail, like graphs or tables), we preferred to err on the side of caution. We open-source the deduplication pipeline here as well as the precomputed test-set embedding’s here.
@@ -279,7 +277,7 @@ TODO: Insert the Images here
 
 Additionally, we experimented with removing all found samples from all datasets to see if the outcome is different from the results above, but we observe the same distribution.
 
-<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Rank of Models trained on different deduplicated open source datasets." />
+<HtmlEmbed src="against-baselines-deduplicated.html" title="D3 Line" desc="TODO - Average Rank of Models trained on different deduplicated open source datasets." />
 
 TODO: After removing these duplicates, the performance of the models dropped by … % over all benchmarks.
 
@@ -297,12 +295,12 @@ Similarly to the comparison of the size, we also wanted to evaluate the datasets
 Since the training of a VLM already builds upon pretrained vision and language backbones, datasets are usually not completely unstructured, but follow an image+question and answer structure. Recent works have shown that consolidating multiple questions for the same image into a multi-turn conversation where the image is shown only once improves model performance, and additionally also reduces the datasets memory footprint. We therefore experiment with deduplicating every image in our dataset internally using the same SSCD descriptors, manually inspect the resulting clusters and merge fitting samples into a multi-turn conversation.
 Even when training for longer than the other ablations, we did not observe a significant difference, if at all rather one in favour against merging multiple samples together.
 
-<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Ranking of Models trained with internally deduplicated / merged samples." />
+<HtmlEmbed src="internal-deduplication.html" title="D3 Line" desc="TODO - Average Ranking of Models trained with internally deduplicated / merged samples." />
 
 ### Should you train on multilingual data if your language backbone was not?
 There are some multilingual datasets in our mixture, but since our Language Backbone is only trained on English data, we experimented with removing all the multilingual, mainly Chinese, subsets. This does also not seem to make a big difference, with slight advantages to leaving the data, even if it was not part of the Language Backbone's initial training. In our training setup with this configuration, one epoch over the whole dataset equals ~12k steps, so the benefit of unseen languages only materializes after the first full epoch.
 
-<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Rank of Models trained with and without multilingual samples" />
+<HtmlEmbed src="remove-ch.html" title="D3 Line" desc="TODO - Average Rank of Models trained with and without multilingual samples" />
 
 ### How can you assess the quality of the dataset?
 
@@ -324,7 +322,7 @@ This is the distribution of scores across the different filters for FineVision.
 
 To try to quantify the quality of the training data and the effect it has on the model’s performance, we run extensive ablations on our generated ratings.
 
-<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Rank of Models trained with samples that have all 4 ratings above a certain threshold." />
+<HtmlEmbed src="all-ratings.html" title="D3 Line" desc="TODO - Average Rank of Models trained with samples that have all 4 ratings above a certain threshold." />
 
 Interestingly, both when only training on turns that have any of the 4 ratings  under a certain threshold, as well as when training on turns where only a single rating at a time is used, we observe the same behaviour. Simply training on all samples of the dataset outperforms in benchmarks. This could mean multiple things. 
 We can almost see the same distribution in the ranks across all filters: From best to worst with an increase in the rating threshold. For example the visual dependency and the image correspondence rating both result in exactly the same distribution of rankings, corresponding to the natural order of options, 1 through 5. This could indicate that with a sufficiently large dataset that you train on long enough, it hurts more to remove samples, even if they were judged to be of low quality, than to train on them. 
@@ -339,14 +337,14 @@ The standard training procedure of a VLM usually follows at least two stages. Fi
 
 #### 1 Stage vs 2 Stages
 
-<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Rank of a model trained for 20K steps in a single stage, and a model trained for the same 20k steps on top of pretraining the Modality Projection and Vision Encoder for 10k steps." />
+<HtmlEmbed src="ss_vs_s1.html" title="D3 Line" desc="TODO - Average Rank of a model trained for 20K steps in a single stage, and a model trained for the same 20k steps on top of pretraining the Modality Projection and Vision Encoder for 10k steps." />
 
 We observe that at this model size, with this amount of available data, training only a single stage actually outperforms a multi stage approach.
 
 #### 2 Stages vs 2.5 Stages
 We also experiment if splitting the second stage results in any performance improvements. We take the baseline, and continue training for another 20k steps, both with the unfiltered (>= 1) as well as filtered subsets of FineVision according to our ratings.
 
-<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Rank if a model trained for an additional 20K steps on top of unfiltered training for 20K steps." />
+<HtmlEmbed src="s25_ratings.html" title="D3 Line" desc="TODO - Average Rank if a model trained for an additional 20K steps on top of unfiltered training for 20K steps." />
 
 Like in the previous results, we observe that the best outcome is simply achieved by training on as much data as possible.
 
