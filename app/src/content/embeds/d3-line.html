@@ -193,6 +193,28 @@
       const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#E889AB';
       const pool = [primary, '#4EA5B7', '#E38A42', '#CEC0FA', ...(d3.schemeTableau10||[])];
 
+      // Mapping from metric names to display titles
+      const metricTitleMapping = {
+        'docvqa_val_anls': 'DocVQA',
+        'infovqa_val_anls': 'InfoVQA',
+        'mme_total_score': 'MME Total',
+        'mmmu_val_mmmu_acc': 'MMMU',
+        'mmstar_average': 'MMStar',
+        'ocrbench_ocrbench_accuracy': 'OCRBench',
+        'scienceqa_exact_match': 'ScienceQA',
+        'textvqa_val_exact_match': 'TextVQA',
+        'average': 'Average (excl. MME)',
+        'average_rank': 'Average Rank',
+        'ai2d_exact_match': 'AI2D',
+        'chartqa_relaxed_overall': 'ChartQA',
+        'seedbench_seed_all': 'SeedBench'
+      };
+
+      // Function to get display name for metric
+      function getMetricDisplayName(metricKey) {
+        return metricTitleMapping[metricKey] || metricKey;
+      }
+
       // State and data
       let metricList = [];
       let runList = [];
@@ -489,7 +511,7 @@
           const xpx = xScale(nearest);
           hoverLine.attr('x1', xpx).attr('x2', xpx).style('display', null).attr('stroke', 'rgba(0,0,0,0.25)');
           // Tooltip content
-          let html = `<div><strong>${metricKey}</strong></div><div><strong>step</strong> ${nearest}</div>`;
+          let html = `<div><strong>${getMetricDisplayName(metricKey)}</strong></div><div><strong>step</strong> ${nearest}</div>`;
           series.forEach(s=>{
             const m = new Map(s.values.map(v=>[v.step, v.value]));
             const val = m.has(nearest) ? m.get(nearest) : null;
@@ -525,7 +547,7 @@
           });
 
           // Populate metric select (default to average_rank if present)
-          metricList.forEach((m)=>{ const o=document.createElement('option'); o.value=m; o.textContent=m; selectMetric.appendChild(o); });
+          metricList.forEach((m)=>{ const o=document.createElement('option'); o.value=m; o.textContent=getMetricDisplayName(m); selectMetric.appendChild(o); });
           const def = metricList.find(m => /average_rank/i.test(m)) || metricList[0];
           if (def) selectMetric.value = def;
 
