@@ -1,17 +1,16 @@
 ---
-title: "Bringing paper to life:\n A modern template for\n scientific writing
-"
-subtitle: "A modern, MDX-first research article template with math, citations and interactive figures."
-description: "A modern, MDX-first research article template with math, citations and interactive figures."
+title: "FineVision: Open Data is all you need"
+subtitle: "A new open dataset for data-centric training of Vision Language Models"
+description: "A new open dataset for data-centric training of Vision Language Models"
 authors:
-  - "John Doe"
-  - "Alice Martin"
-  - "Robert Brown"
+  - "Luis Wiedmann"
+  - "Andi Marafioti"
 affiliation: "Hugging Face"
-published: "Aug 28, 2025"
+published: "Sep 3, 2025"
 tags:
   - research
-  - template
+  - vision-language models
+  - dataset
 ogImage: "/thumb.jpg"
 ---
 
@@ -24,78 +23,332 @@ import audioDemo from "./assets/audio/audio-example.wav";
 import Sidenote from "../components/Sidenote.astro";
 import visualPoster from "./assets/images/visual-vocabulary-poster.png";
 
-import BestPractices from "./chapters/best-pratices.mdx";
-import WritingYourContent from "./chapters/writing-your-content.mdx";
-import AvailableBlocks from "./chapters/available-blocks.mdx";  
-import GettingStarted from "./chapters/getting-started.mdx";
+import Accordion from '../components/Accordion.astro'
 
 <Sidenote>
-  Welcome to this single‑page research article template. It helps you publish **clear**, **modern**, and **interactive** technical writing with **minimal setup**. Grounded in **web‑native scholarship**, it favors **interactive explanations**, careful notation, and **inspectable examples** over static snapshots.
+  TLDR; Today, we release FineVision, a new multimodal dataset with 17M images, 24 million samples, 90M question-answer turns and 10B answer tokens. We have extensively cleaned, analysed, and rated every single turn across 4 qualitative metrics with a score from 1-5 to enable the construction and study of individual training mixtures. 
   
-  It offers a **ready‑to‑publish, all‑in‑one workflow** so you can **focus on ideas** rather than infrastructure.
-  <Fragment slot="aside">
-    Reading time: 20–25 minutes.
-  </Fragment>
-  Use it as a **practical baseline**: **start simple**, **iterate** on structure and style, and keep content **maintainable** for future readers and collaborators.
-  
-</Sidenote>
+  Additionally, we ran extensive ablations and compared the performance of models trained on our dataset with common open source alternatives, and achieved better model performance and higher quantity and diversity of data.
 
-
-#### Features
-
-<Sidenote>
-<div className="tag-list">
-  <span className="tag">Markdown based</span>
-  <span className="tag">KaTeX math</span>
-  <span className="tag">Syntax highlighting</span>
-  <span className="tag">Citations & footnotes</span>
-  <span className="tag">Automatic build</span>
-  <span className="tag">Table of content</span>
-  <span className="tag">Dark theme</span>
-  <span className="tag">HTML fragments</span>
-  <span className="tag">Plotly ready</span>
-  <span className="tag">D3.js ready</span>
-  <span className="tag">SEO Friendly</span>
-  <span className="tag">Mermaid diagrams</span>
-  <span className="tag">Lightweight bundle</span>
-  <span className="tag">Mobile friendly</span>
-  <span className="tag">Optimized images</span>
-  <span className="tag">Automatic PDF export</span>
-  <span className="tag">Dataviz color palettes</span>
-  <span className="tag">Embed gradio apps</span>
-</div>
-<Fragment slot="aside">
-    If you have questions or remarks open a discussion on the <a href="https://huggingface.co/spaces/tfrere/research-blog-template/discussions?status=open&type=discussion">Community tab</a>!
-  </Fragment>
 </Sidenote>
 
 ## Introduction
-The web enables explanations that static PDFs cannot: **reactive diagrams**, **progressive notation**, and **exploratory views** that show how ideas behave. Use **interactive fragments** so readers can **hover**, **scrub**, and **inspect**—building **intuition**, not just reading results.
+Even though open-weights Vision-Language Models (VLMs) are becoming ever more powerful, the accessibility of large-scale, state-of-the-art training data for these models is still lagging behind. The data to train these models is often proprietary and inaccessible for the broader community. Projects like The Cauldron, LLaVa and Cambrian aim to provide such datasets, but get quickly outpaced by the speed of the field and the emergence of novel applications for VLMs, like agentic tasks. 
 
-Careful notation, **thoughtful visual encodings**, and **small, manipulable experiments** deepen understanding. By making these artifacts **first‑class** alongside **text, math, and code**, this template helps readers grasp **mechanisms, limits, and trade‑offs**.
+## Constructing FineVision
+### Data Collection
+We manually collect over 180 image-text datasets from the recent literature and create new subsets in lacking domains.
 
-Not every contribution fits a PDF. Treat demos, visualizations, and interactive write‑ups as **scholarship**: **cite** them, **version** them, and **ship** them with clear, **inspectable examples** that expose **intermediate states** and link to sources so readers can **verify** claims and **reproduce** results.
+<Accordion title="FineVision Subsets">
+|Subset Name                           |Total Images|Total Samples|Total Turns|Total Question Tokens|Total Answer Tokens|Cathegory             |
+|--------------------------------------|------------|-------------|-----------|---------------------|-------------------|----------------------|
+|coco_colors                           |118,287     |118,287      |118,287    |1,301,157            |6,376,672          |Captioning & Knowledge|
+|densefusion_1m                        |1,058,751   |1,058,751    |1,058,751  |10,692,478           |263,718,217        |Captioning & Knowledge|
+|face_emotion                          |797         |797          |797        |8,767                |8,066              |Captioning & Knowledge|
+|google-landmarks                      |299,993     |299,993      |842,127    |6,194,978            |10,202,980         |Captioning & Knowledge|
+|image_textualization(filtered)        |99,573      |99,573       |99,573     |917,577              |19,374,090         |Captioning & Knowledge|
+|laion_gpt4v                           |9,301       |9,301        |9,301      |93,950               |1,875,283          |Captioning & Knowledge|
+|localized_narratives                  |199,998     |199,998      |199,998    |2,167,179            |8,021,473          |Captioning & Knowledge|
+|sharegpt4o                            |57,284      |57,284       |57,284     |558,647              |36,555,323         |Captioning & Knowledge|
+|sharegpt4v(coco)                      |50,017      |50,017       |50,017     |460,893              |9,825,387          |Captioning & Knowledge|
+|sharegpt4v(knowledge)                 |1,988       |1,988        |1,988      |18,250               |293,850            |Captioning & Knowledge|
+|sharegpt4v(llava)                     |29,986      |29,986       |29,986     |275,783              |6,175,899          |Captioning & Knowledge|
+|sharegpt4v(sam)                       |8,990       |8,990        |8,990      |82,874               |1,668,797          |Captioning & Knowledge|
+|textcaps                              |21,906      |21,906       |21,906     |240,966              |355,991            |Captioning & Knowledge|
+|chart2text                            |26,961      |26,961       |30,215     |342,215              |2,670,580          |Chart & Table         |
+|chartqa                               |18,265      |18,265       |28,287     |625,569              |134,793            |Chart & Table         |
+|CoSyn_400k_chart                      |116,814     |116,814      |1,085,882  |17,617,591           |57,641,030         |Chart & Table         |
+|CoSyn_400k_table                      |46,518      |46,518       |416,519    |6,280,455            |23,335,054         |Chart & Table         |
+|dvqa                                  |200,000     |200,000      |2,325,316  |44,603,372           |5,477,966          |Chart & Table         |
+|figureqa                              |100,000     |100,000      |1,327,368  |18,515,153           |2,654,736          |Chart & Table         |
+|figureqa(mathv360k)                   |17,587      |17,587       |17,587     |722,959              |97,404             |Chart & Table         |
+|finqa                                 |5,276       |5,276        |6,251      |5,552,943            |224,015            |Chart & Table         |
+|hitab                                 |2,500       |2,500        |7,782      |177,999              |335,013            |Chart & Table         |
+|lrv_chart                             |1,776       |1,776        |5,372      |76,477               |158,711            |Chart & Table         |
+|mmc_instruct                          |168,178     |168,178      |168,178    |50,008,824           |74,581,055         |Chart & Table         |
+|multihiertt                           |30,875      |7,619        |7,830      |218,840              |244,744            |Chart & Table         |
+|plotqa                                |157,070     |157,070      |20,249,479 |738,371,054          |118,122,387        |Chart & Table         |
+|robut_sqa                             |8,514       |8,514        |34,141     |368,957              |1,794,570          |Chart & Table         |
+|robut_wikisql                         |74,989      |74,989       |86,202     |1,454,920            |9,276,100          |Chart & Table         |
+|robut_wtq                             |38,246      |38,246       |44,096     |587,040              |6,415,830          |Chart & Table         |
+|SynthChartNet                         |500,000     |500,000      |500,000    |2,169,240            |67,392,223         |Chart & Table         |
+|tabmwp                                |22,722      |22,722       |23,021     |639,639              |1,883,243          |Chart & Table         |
+|tabmwp(mathv360k)                     |22,452      |22,452       |22,452     |963,498              |158,042            |Chart & Table         |
+|tat_dqa                               |2,448       |2,207        |13,251     |320,356              |1,177,852          |Chart & Table         |
+|tat_qa                                |2,199       |2,199        |13,215     |989,419              |254,790            |Chart & Table         |
+|Unichart                              |611,925     |611,925      |6,898,324  |96,702,288           |211,989,247        |Chart & Table         |
+|vistext                               |9,969       |9,969        |9,969      |88,770               |1,191,127          |Chart & Table         |
+|vqaonbd                               |39,986      |39,986       |1,254,165  |36,066,807           |5,620,523          |Chart & Table         |
+|alfworldgpt                           |45,073      |45,073       |45,073     |17,864,033           |6,276,573          |General VQA           |
+|allava_laion                          |468,664     |468,664      |937,328    |18,654,303           |145,799,426        |General VQA           |
+|allava_vflan                          |177,078     |177,078      |387,872    |12,444,711           |55,305,642         |General VQA           |
+|cambrian(filtered)_processed          |83,123      |83,124       |98,534     |1,410,321            |5,503,211          |General VQA           |
+|chinesememe                           |54,212      |54,212       |54,212     |538,938              |21,122,723         |General VQA           |
+|cocoqa                                |46,287      |46,287       |78,736     |1,136,238            |212,480            |General VQA           |
+|CoSyn_400k_graphic                    |26,968      |26,968       |26,968     |1,678,862            |8,235,679          |General VQA           |
+|datik                                 |220,537     |222,385      |222,385    |2,234,054            |187,757,952        |General VQA           |
+|datikz                                |47,441      |47,974       |48,296     |441,040              |59,116,193         |General VQA           |
+|drivelm                               |90,049      |4,072        |161,030    |2,399,362            |1,431,417          |General VQA           |
+|hateful_memes                         |8,500       |8,500        |8,500      |128,375              |17,000             |General VQA           |
+|iconqa                                |27,307      |27,307       |29,841     |906,877              |72,492             |General VQA           |
+|iconqa(mathv360k)                     |22,589      |22,589       |22,589     |952,183              |134,029            |General VQA           |
+|idk                                   |11,123      |11,123       |27,614     |235,262              |665,247            |General VQA           |
+|indoor_qa                             |3,350       |3,350        |3,350      |36,832               |19,700             |General VQA           |
+|LLaVA_Instruct_150K                   |157,710     |157,710      |361,405    |4,412,600            |28,719,278         |General VQA           |
+|llavar_gpt4_20k                       |19,790      |19,790       |43,167     |546,703              |1,516,730          |General VQA           |
+|lnqa                                  |302,780     |302,780      |1,520,942  |16,530,323           |19,027,663         |General VQA           |
+|lrv_normal(filtered)                  |10,489      |10,489       |155,269    |2,108,321            |3,134,247          |General VQA           |
+|lvis_instruct4v                       |222,711     |222,711      |1,050,622  |12,556,173           |43,726,782         |General VQA           |
+|mimic_cgd                             |141,878     |70,939       |141,869    |1,789,740            |4,304,380          |General VQA           |
+|MMEvol                                |160,215     |160,215      |630,441    |16,203,127           |50,445,237         |General VQA           |
+|mmra                                  |2,048       |1,024        |1,024      |72,523               |25,764             |General VQA           |
+|nlvr2                                 |100,852     |50,426       |86,373     |4,629,641            |172,746            |General VQA           |
+|sketchyvqa                            |8,000       |8,000        |8,000      |182,192              |8,000              |General VQA           |
+|spark                                 |3,904       |3,904        |6,248      |65,982               |73,973             |General VQA           |
+|spatialsense                          |10,440      |10,440       |17,498     |200,963              |418,883            |General VQA           |
+|spot_the_diff                         |17,132      |8,566        |9,524      |82,670               |209,630            |General VQA           |
+|vision_flan(filtered)                 |175,964     |175,964      |175,964    |9,983,758            |3,009,891          |General VQA           |
+|visual7w                              |14,366      |14,366       |69,817     |3,054,334            |209,451            |General VQA           |
+|vizwiz(mathv360k)                     |6,604       |6,604        |6,604      |197,143              |44,876             |General VQA           |
+|vqav2                                 |82,772      |82,772       |443,757    |5,722,488            |1,100,837          |General VQA           |
+|vsr                                   |2,157       |2,157        |3,354      |79,596               |6,708              |General VQA           |
+|websight                              |10,000      |10,000       |10,000     |113,114              |5,237,381          |General VQA           |
+|wildvision                            |333         |333          |405        |50,161               |72,820             |General VQA           |
+|yesbut                                |4,318       |4,318        |4,318      |38,365               |157,229            |General VQA           |
+|aguvis-stage-1                        |458,957     |458,957      |3,831,666  |36,151,272           |93,546,182         |Grounding & Counting  |
+|groundui                              |13,531      |13,531       |18,016     |200,094              |883,274            |Grounding & Counting  |
+|Objects365_QA                         |1,742,287   |1,742,287    |12,329,259 |135,681,680          |2,146,619,635      |Grounding & Counting  |
+|oodvqa                                |8,488       |8,488        |8,488      |227,028              |8,488              |Grounding & Counting  |
+|tallyqa                               |98,680      |98,680       |183,986    |2,674,306            |370,282            |Grounding & Counting  |
+|clevr                                 |70,000      |70,000       |699,989    |19,277,813           |1,570,525          |Mathematics           |
+|clevr_math                            |70,000      |70,000       |556,082    |7,888,064            |580,324            |Mathematics           |
+|clevr_math(mathv360k)                 |5,280       |5,280        |5,280      |174,879              |27,536             |Mathematics           |
+|CoSyn_400k_math                       |66,714      |66,714       |66,714     |500,554              |28,631,388         |Mathematics           |
+|geo170k(align)                        |35,297      |35,297       |35,297     |336,151              |1,866,019          |Mathematics           |
+|geo170k(qa)                           |12,101      |12,101       |12,101     |1,254,831            |1,115,242          |Mathematics           |
+|geo3k                                 |2,091       |2,091        |2,091      |130,287              |2,091              |Mathematics           |
+|geometry3k(mathv360k)                 |9,724       |9,724        |9,724      |541,908              |69,075             |Mathematics           |
+|geomverse                             |9,303       |9,303        |9,339      |662,756              |2,454,014          |Mathematics           |
+|geoqa+(mathv360k)                     |17,162      |17,162       |17,162     |1,449,094            |117,740            |Mathematics           |
+|geos(mathv360k)                       |498         |498          |498        |32,394               |3,509              |Mathematics           |
+|intergps                              |1,280       |1,280        |1,760      |97,799               |5,280              |Mathematics           |
+|mavis_math_metagen                    |87,348      |87,348       |87,348     |6,668,920            |5,486,485          |Mathematics           |
+|mavis_math_rule_geo                   |99,986      |99,986       |99,986     |8,211,079            |12,535,251         |Mathematics           |
+|raven                                 |63,081      |42,000       |42,000     |584,843              |63,081             |Mathematics           |
+|super_clevr(mathv360k)                |8,642       |8,642        |8,642      |307,438              |44,129             |Mathematics           |
+|unigeo(mathv360k)                     |11,949      |11,949       |11,949     |1,011,069            |81,781             |Mathematics           |
+|art                                   |5,603       |5,603        |5,603      |56,573               |283,138            |Naive OCR             |
+|captcha                               |113,062     |113,062      |113,062    |1,469,548            |466,856            |Naive OCR             |
+|chrome_writting                       |8,825       |8,825        |8,825      |150,025              |172,940            |Naive OCR             |
+|cocotext                              |16,169      |16,169       |16,169     |143,818              |177,111            |Naive OCR             |
+|ctw                                   |24,290      |24,290       |180,621    |9,787,485            |1,653,254          |Naive OCR             |
+|funsd                                 |194         |194          |3,879      |16,856               |29,996             |Naive OCR             |
+|hme100k                               |74,492      |74,492       |74,492     |1,117,380            |1,757,743          |Naive OCR             |
+|hw_squad                              |20,457      |20,457       |83,682     |1,071,534            |388,518            |Naive OCR             |
+|iam                                   |5,663       |5,663        |5,663      |45,582               |130,794            |Naive OCR             |
+|iiit5k                                |1,990       |1,990        |1,990      |35,820               |4,259              |Naive OCR             |
+|imgur5k                               |5,934       |5,934        |5,934      |89,010               |288,054            |Naive OCR             |
+|k12_printing                          |256,636     |256,636      |256,636    |14,114,980           |7,465,001          |Naive OCR             |
+|latex_handwritten                     |39,583      |39,583       |39,583     |390,343              |1,874,733          |Naive OCR             |
+|latexformulas                         |552,340     |552,340      |552,340    |5,138,603            |43,094,747         |Naive OCR             |
+|maptext                               |200         |200          |799        |9,434                |70,813             |Naive OCR             |
+|mathwriting-google                    |300,000     |300,000      |300,000    |2,461,270            |5,954,806          |Naive OCR             |
+|memotion                              |6,991       |6,991        |6,991      |194,718              |177,429            |Naive OCR             |
+|orand_car_a                           |1,999       |1,999        |1,999      |43,978               |9,035              |Naive OCR             |
+|rendered_text                         |10,000      |10,000       |10,000     |85,879               |244,183            |Naive OCR             |
+|sroie                                 |33,616      |33,616       |33,616     |605,088              |243,240            |Naive OCR             |
+|svrd                                  |4,396       |4,396        |4,396      |65,400               |834,514            |Naive OCR             |
+|SynthCodeNet                          |499,983     |499,983      |499,983    |2,000,683            |253,422,136        |Naive OCR             |
+|synthdog                              |500,000     |500,000      |500,000    |8,849,848            |48,010,145         |Naive OCR             |
+|SynthFormulaNet                       |499,997     |499,997      |499,997    |1,999,631            |51,215,097         |Naive OCR             |
+|tal_ocr_eng                           |256,646     |256,646      |256,646    |3,385,012            |7,465,207          |Naive OCR             |
+|wordart                               |19,066      |4,804        |4,804      |78,032               |54,263             |Naive OCR             |
+|olmOCR-mix-0225-documents             |228,864     |228,864      |228,858    |2,197,147            |163,194,337        |Naive OCR             |
+|olmOCR-mix-0225-books                 |15,194      |15,194       |15,194     |145,750              |7,962,779          |Naive OCR             |
+|a_okvqa                               |54,602      |54,602       |54,602     |1,065,188            |360,990            |OCR QA                |
+|aokvqa                                |16,539      |16,539       |17,056     |743,458              |218,917            |OCR QA                |
+|arxivqa                               |100,000     |100,000      |100,000    |7,022,001            |6,422,269          |OCR QA                |
+|bentham                               |10,843      |10,843       |10,843     |103,042              |124,459            |OCR QA                |
+|blockdiagramcomputerized              |502         |502          |502        |5,067                |34,453             |OCR QA                |
+|blockdiagramhandwritten               |1,029       |1,029        |1,029      |11,444               |75,598             |OCR QA                |
+|CoSyn_400k_diagram                    |34,963      |34,963       |300,357    |3,356,844            |11,943,321         |OCR QA                |
+|CoSyn_400k_document                   |71,282      |71,282       |605,173    |6,216,517            |16,095,526         |OCR QA                |
+|CoSyn_400k_music                      |11,969      |11,969       |81,786     |792,129              |3,175,586          |OCR QA                |
+|CoSyn_400k_nutrition                  |6,931       |6,931        |112,097    |1,642,936            |3,687,254          |OCR QA                |
+|diagram_image_to_text                 |300         |300          |300        |3,631                |20,723             |OCR QA                |
+|DoclingMatix                          |2,465,202   |1,270,911    |10,626,898 |162,581,660          |2,996,338,775      |OCR QA                |
+|docvqa                                |10,189      |10,189       |39,463     |724,814              |275,510            |OCR QA                |
+|est_vqa                               |19,358      |19,358       |19,358     |286,343              |143,270            |OCR QA                |
+|handwriting_forms                     |1,400       |1,400        |1,400      |81,200               |41,490             |OCR QA                |
+|infographic_vqa                       |1,982       |4,394        |23,717     |392,456              |86,951             |OCR QA                |
+|infographic_vqa_llava_format          |4,394       |2,113        |10,054     |174,352              |43,912             |OCR QA                |
+|infographic(gpt4v)                    |2,113       |1,982        |1,982      |275,498              |1,044,183          |OCR QA                |
+|invoices_receipts                     |3,013       |3,013        |3,013      |36,745               |771,948            |OCR QA                |
+|mapqa                                 |37,417      |37,417       |483,416    |8,454,722            |5,657,339          |OCR QA                |
+|mapqa(mathv360k)                      |5,225       |5,225        |5,225      |168,390              |44,560             |OCR QA                |
+|mmsoc_memotion                        |6,991       |6,991        |6,991      |188,505              |421,250            |OCR QA                |
+|ocrvqa                                |165,746     |165,746      |801,579    |12,217,564           |4,801,833          |OCR QA                |
+|pdfvqa                                |8,593       |8,593        |95,000     |1,272,618            |939,948            |OCR QA                |
+|screen2words                          |15,730      |15,730       |15,743     |133,014              |120,781            |OCR QA                |
+|screenqa                              |80,761      |80,761       |80,761     |940,729              |826,795            |OCR QA                |
+|slidevqa                              |11,868      |1,919        |10,617     |333,065              |156,036            |OCR QA                |
+|st_vqa                                |17,247      |17,247       |23,121     |338,837              |98,892             |OCR QA                |
+|sujet_finance                         |9,801       |9,801        |107,050    |1,395,624            |1,925,361          |OCR QA                |
+|textocr(gpt4v)                        |25,060      |25,060       |25,060     |150,360              |2,436,974          |OCR QA                |
+|textvqa                               |21,953      |21,953       |34,602     |553,990              |141,882            |OCR QA                |
+|ureader_cap                           |91,215      |91,215       |91,215     |1,086,484            |1,435,964          |OCR QA                |
+|ureader_ie                            |17,320      |17,320       |17,320     |406,237              |128,229            |OCR QA                |
+|ureader_kg_processed                  |37,550      |37,550       |37,550     |352,907              |2,013,731          |OCR QA                |
+|ureader_qa_processed                  |252,953     |252,953      |252,953    |7,100,750            |930,617            |OCR QA                |
+|visualmrc                             |3,027       |3,027        |11,988     |139,751              |147,385            |OCR QA                |
+|ai2d_merged                           |4,858       |4,858        |12,325     |755,455              |1,319,140          |Science               |
+|CoSyn_400k_chemical                   |8,942       |8,942        |55,391     |634,881              |2,450,290          |Science               |
+|CoSyn_400k_circuit                    |10,470      |10,470       |67,939     |713,575              |2,637,618          |Science               |
+|pathvqa                               |32,632      |32,632       |32,632     |639,385              |85,168             |Science               |
+|pmc_vqa(mathv360k)                    |35,948      |35,948       |35,948     |1,889,167            |255,109            |Science               |
+|scienceqa                             |4,976       |4,976        |6,149      |1,081,220            |18,447             |Science               |
+|scienceqa(nona_context)               |19,208      |19,208       |19,208     |1,624,583            |25,311             |Science               |
+|tqa                                   |2,749       |2,749        |12,567     |395,956              |149,776            |Science               |
+|visualwebinstruct(filtered)           |263,581     |263,581      |263,581    |8,341,540            |31,802,459         |Science               |
+|vqarad                                |313         |313          |1,793      |25,181               |6,003              |Science               |
+|text_code_feedback                    |0           |66,383       |221,096    |19,349,056           |79,752,351         |Text-only             |
+|text_codefeedback_filtered_instruction|0           |156,525      |156,525    |27,684,170           |62,764,414         |Text-only             |
+|text_infinitymath                     |0           |101,380      |101,380    |9,158,132            |212,543            |Text-only             |
+|text_mathinstruct                     |0           |262,039      |262,039    |20,405,295           |44,145,362         |Text-only             |
+|text_mathqa                           |0           |394,996      |394,996    |23,552,035           |72,451,061         |Text-only             |
+|text_mathstepdpo10k                   |0           |10,795       |10,795     |557,233              |989,312            |Text-only             |
+|text_numinamath_cot                   |0           |859,494      |859,494    |75,818,870           |387,758,581        |Text-only             |
+|text_openhermes_2_5                   |0           |1,001,551    |1,008,268  |142,376,960          |233,561,291        |Text-only             |
+|text_openorca                         |0           |4,233,853    |4,233,853  |1,049,478,873        |468,042,176        |Text-only             |
+|text_orcamath                         |0           |200,035      |200,035    |12,691,014           |61,860,987         |Text-only             |
+|text_pythoncode25k                    |0           |49,626       |49,626     |1,629,286            |4,945,892          |Text-only             |
+|text_pythoncodealpaca                 |0           |18,612       |18,612     |655,127              |2,683,469          |Text-only             |
+|text_ruozhiba                         |0           |1,496        |1,496      |69,795               |234,822            |Text-only             |
+|text_theoremqa                        |0           |800          |800        |50,065               |3,468              |Text-only             |
+|text_wizardlm_evol                    |0           |69,999       |69,999     |7,753,963            |21,955,856         |Text-only             |
+|text_OpenMathInstruct-2               |0           |1,000,000    |1,000,000  |74,905,850           |413,132,418        |Text-only             |
+</Accordion>
 
-This project is heavily inspired by [**Distill**](https://distill.pub) (2016–2021), which championed clear, web‑native scholarship.
+### Cleaning
+After gathering all the sub-datasets, every turn is cleaned. We remove all individual turns whose combined question and answer length exceeds 8192 tokens. We resize big images to have a longest side of 2048 pixels while keeping the aspect ratio, and discard images with corrupted metadata. This results in a clean final dataset with a maximum turn length of 8192 tokens and a maximum image dimension of 2048 pixels on the longest side.
 
+### Result
+FineVision consists of 9 categories: Captioning & Knowledge, Chart & Table, General VQA, Grounding & Counting, Mathematics, Naive OCR, OCR QA, Science, Text-only.
 
-{/* ### Notable examples of excellent scientific articles
+There are multiple ways to count the data in a multimodal dataset. The most common are the number of samples and the number of images. Additionally, a single sample can consist of multiple question/answer pairs in the form of a multi-turn conversation. Similarly to text-only datasets, the number of answer tokens is also interesting, since these are the tokens the model is actually trained on. We keep track of all 4 different distributions. 
 
-A short, curated list of well‑designed and often interactive work:
+In total, FineVision has 17.3M images, 24.3M samples, 88.9M turns, and 9.5B answer tokens. Based on these 4 distributions, multiple different mixtures are possible. In conjunction with the provided ratings, we encourage the community to experiment with downsampling large categories, for example according to quality and diversity criteria, and with upsampling high quality samples in small categories.
 
-- **Distill — The Building Blocks of Interpretability**: [distill.pub/2018/building-blocks](https://distill.pub/2018/building-blocks/)
-- **R2D3 — A Visual Introduction to Machine Learning (Part 1)**: [r2d3.us/visual-intro-to-machine-learning-part-1](http://www.r2d3.us/visual-intro-to-machine-learning-part-1/)
-- **Seeing Theory — An interactive introduction to probability and statistics**: [seeing-theory.brown.edu](https://seeing-theory.brown.edu/)
-- **ConvNetJS — Neural networks in the browser**: [cs.stanford.edu/people/karpathy/convnetjs](http://cs.stanford.edu/people/karpathy/convnetjs/)
-- **Explorable Explanations — Collection**: [explorableexplanations.com](http://explorableexplanations.com/)
-- **Distill — Why Momentum Really Works**: [distill.pub/2017/momentum](https://distill.pub/2017/momentum/)
- */} 
+---
+<FullWidth>
+  <HtmlEmbed src="d3-pie.html" desc="Distribution of Categories in FineVision" align="center" />
+</FullWidth>
+---
 
-<GettingStarted />
+## Experimental Setup
+To evaluate how our dataset compares to other open-source datasets, we conduct various experiments.
 
-<WritingYourContent />
+### Model Architecture: nanoVLM
+For most of the ablations and experiments, we train a 450M parameter VLM, since it provides a good trade off between training time and model performance. We utilize the lightweight nanoVLM training framework with SmolLM2-360M-Instruct as the text backbone, andSigLIP2-512 as the vision encoder. We experimented with a classic 2-stage training schedule where the first stage is used to train mainly the Modality Projection to align the Language and Image Embeddings, and the second stage is used to train the whole model. Interestingly, we did not observe any significant benefits from this additional first stage compared to training the whole model directly, so we settled on a single stage training for most ablations.  
 
-<AvailableBlocks />
+### Baseline Datasets
+We compare our dataset against 3 popular open source alternatives: [The Cauldron](https://huggingface.co/datasets/HuggingFaceM4/the_cauldron), [LLaVA-OneVision](https://huggingface.co/datasets/lmms-lab/LLaVA-OneVision-Data) and [Cambrian-7M](https://huggingface.co/datasets/nyu-visionx/Cambrian-10M). We analyse all of them with the same pipeline concerning potential test-set contamination. Note that these rates are not the actual contaminations. While the pipeline discovers some similarities between the images of the test sets and the train sets, this does not mean that they are actually samples from the test set, since these consist of both image and the corresponding text. This is rather used as an upper bound on potential train/test overlap and as a relative comparison between the four datasets. 
 
-<BestPractices />
+### Evaluations
+To evaluate our ablations in a reproducible manner, we utilize lmms-eval during training. We evaluate on a diverse set of 11 benchmarks: AI2D, ChartQA, DocVQA, InfoVQA, MME, MMMU, MMStar, OCRBench, ScienceQA, TextVQA and Seedbench. Since these benchmarks cover different topics and produce results on different scales, e.g. AI2D returns the accuracy of the exact matches (0-100), but MME returns a continuous score (0-2800), aggregating them is not trivial. In our ablations the relative performance between the different configurations matters, so we determine the rank of every model in each training step and average it over all the benchmarks. This way we can judge where different configurations rank among each other over the course of training, and how big the difference between them is.
 
+## Experiments
+Each of our ablations trains a 450M model with maximal image size of 1536x1536 pixel (without resizing smaller images) and a maximal input token length of 4096. In all single stage configurations we train for 20k Steps on 32 H100s for approximately 20h while evaluating all 11 benchmarks every 1k Steps. If not specified otherwise, the “Baseline” in our intra dataset ablations refers to a training run on the full unfiltered and unchanged dataset
+
+### How does FineVision compare against the Baselines?
+Compared against existing VLM training datasets, FineVision produces significantly higher benchmark ranks than the other options.
+
+<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Rank of Models trained on different open source datasets." />
+
+### How contaminated are the datasets?
+To investigate data leakage from benchmarks into this dataset, we construct a deduplication pipeline based on the sample images. We embed the images of 66 image-test datasets from the lmms-eval framework using the SSCD descriptor, and compute the cosine similarity between our samples and the test-set embeddings. Whenever a sample has a similarity higher than a threshold of 0.95 it is assumed to be a duplicate. While our tests with various thresholds show that this is flagging some samples that are not actual duplicates (especially if the image depicts similar but different images in detail, like graphs or tables), we preferred to err on the side of caution. We open-source the deduplication pipeline here as well as the precomputed test-set embedding’s here.
+
+TODO: Insert the Images here
+
+| Name          | Samples	| Contamination Rate | 	
+|---------------|---------|--------------------|
+| Cauldron      | 1.8M		| 3.05%		           |
+| Llava-Vision 	| 3.9M		| 2.15%		           |
+| Cambrian-7M  	| 7.0M	  | 2.29%		           |
+| FineVision		| 24.3M 	| 1.02%	      	     |
+
+Additionally, we experimented with removing all found samples from all datasets to see if the outcome is different from the results above, but we observe the same distribution.
+
+<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Rank of Models trained on different deduplicated open source datasets." />
+
+TODO: After removing these duplicates, the performance of the models dropped by … % over all benchmarks.
+
+### How diverse are the datasets?
+Similarly to the comparison of the size, we also wanted to evaluate the datasets for diversity. Evaluating the diversity of a dataset is a field of study for itself, which we will not dive into here, rather we borrow techniques from computer vision and use the already computed SSCD embeddings as a proxy of visual diversity. The SSCD embeddings should provide a good approximation since they are specifically optimized for distinguishing between visually similar content, through their differential entropy regularization that tries to ensure the full utilization of the embedding space. The resulting approximately uniform distribution of the embeddings promotes consistent separation between descriptor vectors, making distances from different embedding regions more comparable, which is crucial for meaningful diversity measurements. To not rely on a subsample of the dataset in estimating the diversity, we analyse the covariance metric of the full embeddings since this can be computed over the whole dataset in a numerically stable way (using Welford’s algorithm). From this covariance matrix, we can calculate the eigenvalues for analysis. We get the effective rank of the covariance matrix, which measures how uniformly the variance is distributed across dimensions, as well as the participation ratio, which measures how many dimensions actively contribute to the overall variance. The effective rank (entropy based) estimates the uniformity of the variance distribution, while the participation ratio (concentration-based) estimates the breadth of the variance participation . To obtain a single ‘diversity score’ for the datasets, we normalize the effective rank and participation ratio with the embedding dimension and compute their geometric mean. We observe that FineVision is not only the biggest, but also the most diverse dataset.
+
+| Name          | Effective Rank | Participation Ratio | Diversity |
+|---------------|----------------|---------------------|-----------|
+| Cauldron      | 324.05		     | 129.22		           | 0.400     |
+| Llava-Vision 	| 267.89	       |  87.05		           | 0.298     |
+| Cambrian-7M  	| 359.73		     | 152.70		           | 0.458     |
+| FineVision		| 359.22		     | 182.52		           | 0.500     |
+
+### Should you merge multiple questions for the same image into a single multi turn conversation?
+Since the training of a VLM already builds upon pretrained vision and language backbones, datasets are usually not completely unstructured, but follow an image+question and answer structure. Recent works have shown that consolidating multiple questions for the same image into a multi-turn conversation where the image is shown only once improves model performance, and additionally also reduces the datasets memory footprint. We therefore experiment with deduplicating every image in our dataset internally using the same SSCD descriptors, manually inspect the resulting clusters and merge fitting samples into a multi-turn conversation.
+Even when training for longer than the other ablations, we did not observe a significant difference, if at all rather one in favour against merging multiple samples together.
+
+<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Ranking of Models trained with internally deduplicated / merged samples." />
+
+### Should you train on multilingual data if your language backbone was not?
+There are some multilingual datasets in our mixture, but since our Language Backbone is only trained on English data, we experimented with removing all the multilingual, mainly Chinese, subsets. This does also not seem to make a big difference, with slight advantages to leaving the data, even if it was not part of the Language Backbone's initial training. In our training setup with this configuration, one epoch over the whole dataset equals ~12k steps, so the benefit of unseen languages only materializes after the first full epoch.
+
+<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Rank of Models trained with and without multilingual samples" />
+
+### How can you assess the quality of the dataset?
+
+The usual goal for every dataset, to collect samples with the highest quality possible, is quite an abstract endeavour in practice, especially for multimodal datasets. Additionally, different training stages usually have different qualitative and quantitative requirements. Finally, tuning the mixtures of different categories is also reliant on how much data with what quality is available. For image-text datasets, there are 3 different combinatorial ways to evaluate a sample: text-only, image-only, and image-text correspondence. The question persists, how do you actually measure the quality of a sample, especially if you have to do so in 3 different ways.
+With FineVision, we test a framework to rate every single turn in our dataset across 4 axes.
+For this, we used a LLM and VLM-as-a-judge pipeline (using Qwen3-32B and Qwen2.5VL-32B), to rate every turn on a scale from 1-5 in these 4 categories:
+- **Text Formatting Quality**: How is the quality of the answer both linguistically and structurally? (Question and Answer)
+- **Question-Answer Relevance**: Does the answer properly respond to the question? (Question and Answer)
+- **Visual Dependency**: How much does the question depend on visual information to be answered? (Question only)
+- **Image-Question Correspondence**: How well does the image support answering the question? (Image and Question)
+
+This is the distribution of scores across the different filters for FineVision.
+| Filter               	| 1   	| 2   	| 3   	| 4    	| 5    	|
+|-----------------------|-------|-------|-------|-------|-------|
+| Formatting        		| 0.5	  | 0.7 	| 1.1 	| 77.5 	| 20.3 	|
+| Relevance         		| 2.9 	| 0.5 	| 14.7	| 16.5 	| 65.4 	|
+| Visual Dependency	 	  | 11.0 	| 20.4	| 2.6 	| 24.2 	| 41.8 	|
+| Image Correspondence 	| 8.1 	| 3.6 	| 17.3	| 26.8 	| 44.1 	|
+
+To try to quantify the quality of the training data and the effect it has on the model’s performance, we run extensive ablations on our generated ratings.
+
+<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Rank of Models trained with samples that have all 4 ratings above a certain threshold." />
+
+Interestingly, both when only training on turns that have any of the 4 ratings  under a certain threshold, as well as when training on turns where only a single rating at a time is used, we observe the same behaviour. Simply training on all samples of the dataset outperforms in benchmarks. This could mean multiple things. 
+We can almost see the same distribution in the ranks across all filters: From best to worst with an increase in the rating threshold. For example the visual dependency and the image correspondence rating both result in exactly the same distribution of rankings, corresponding to the natural order of options, 1 through 5. This could indicate that with a sufficiently large dataset that you train on long enough, it hurts more to remove samples, even if they were judged to be of low quality, than to train on them. 
+The notion of quality for VLM datasets is nuanced in general. If we compare training a VLM and an LLM, training the VLM is closer in nature to the SFT part than the ‘Pre-Training’ part of training a LLM. We do not train on crawls of internet data, instead we train on individual samples of Image-Question and Answer pairs, and these datapoints are usually ‘curated rather than collected’. We also do not train on trillions of tokens, but on billions. This means that the datasets for VLMs usually already have a certain baseline quality. Since FineVision is mainly a collection of common VLM datasets, combined with a few newly created ones in low resource domains, this baseline quality is the same here. We could therefore be trying to measure and quantify nuances in the quality of Image-Question-Answer Pairs, instead of using the binary indicator of using curated SFT datasets as the measure for quality, and training on as much data as possible.
+Alternatively, while we used state-of-the-art open source models to judge our datapoints, we still had to find a compromise between model quality and cost due to the raw required effort to rate every single turn of FineVision. The chosen models could simply not be powerful enough to recognize and judge the quality of samples.
+Even though our first proposal to judge the quality of multimodal data on a per-turn basis did not yield any improvement in model performance, we believe that this is still an exciting and important direction of research and hope the release of FineVision encourages the community to develop techniques for this at large scale.
+
+<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Rank of Models 4 plots for the rankings." />
+
+### Should you train in multiple stages?
+The standard training procedure of a VLM usually follows at least two stages. First, you train only the connecting module, potentially in addition the image encoder, and then you train the whole model in a second stage. Some work has even introduced an additional Stage 2.5, where you train the full model on a smaller subset of higher quality data. To investigate this on small models, we experiment both with single, dual and triple stage training.
+
+#### 1 Stage vs 2 Stages
+
+<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Rank of a model trained for 20K steps in a single stage, and a model trained for the same 20k steps on top of pretraining the Modality Projection and Vision Encoder for 10k steps." />
+
+We observe that at this model size, with this amount of available data, training only a single stage actually outperforms a multi stage approach.
+
+#### 2 Stages vs 2.5 Stages
+We also experiment if splitting the second stage results in any performance improvements. We take the baseline, and continue training for another 20k steps, both with the unfiltered (>= 1) as well as filtered subsets of FineVision according to our ratings.
+
+<HtmlEmbed src="d3-line.html" title="D3 Line" desc="TODO - Average Rank if a model trained for an additional 20K steps on top of unfiltered training for 20K steps." />
+
+Like in the previous results, we observe that the best outcome is simply achieved by training on as much data as possible.
+
+## Conclusion
+We introduce FineVision, a new state of the art open dataset to train VLMs, that is both bigger and more diverse than previous open source datasets. In addition to extensive ablations, we present a new family of small, purely data-centric trained VLMs, and hope we can empower both further research and the community with this.
