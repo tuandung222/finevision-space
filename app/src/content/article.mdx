@@ -493,21 +493,21 @@ The standard training procedure of a VLM usually follows at least two stages. Fi
 
 To investigate this on small models, we experiment both with single, dual and triple stage training.
 
+---
 #### 1 Stage vs 2 Stages
 
 <HtmlEmbed src="ss-vs-s1.html" desc="Average Rank of a model trained for 20K steps in a single stage, and a model trained for the same 20k steps on top of pretraining the Modality Projection and Vision Encoder for 10k steps." />
----
+
 
 We observe that at this model size, with this amount of available data, training only a single stage actually outperforms a multi stage approach.
 
+---
 #### 2 Stages vs 2.5 Stages
 We also experiment if splitting the second stage results in any performance improvements.
 
 We take the baseline, and continue training for another 20k steps, both with the unfiltered (>= 1) as well as filtered subsets of **FineVision** according to our ratings.
 
----
 <HtmlEmbed src="s25-ratings.html" desc="Average Rank if a model trained for an additional 20K steps on top of unfiltered training for 20K steps." />
----
 
 Like in the previous results, we observe that the best outcome is simply achieved by training on as much data as possible.
 
