@@ -272,10 +272,11 @@ Compared against existing VLM training datasets, FineVision produces significant
 <HtmlEmbed src="against-baselines.html" desc="Average Rank of Models trained on different open source datasets." />
 
 ### How contaminated are the datasets?
-To investigate data leakage from benchmarks into this dataset, we construct a deduplication pipeline based on the sample images. We embed the images of 66 image-test datasets from the lmms-eval framework using the SSCD descriptor, and compute the cosine similarity between our samples and the test-set embeddings. Whenever a sample has a similarity higher than a threshold of 0.95 it is assumed to be a duplicate. While our tests with various thresholds show that this is flagging some samples that are not actual duplicates (especially if the image depicts similar but different images in detail, like graphs or tables), we preferred to err on the side of caution. We open-source the deduplication pipeline here as well as the precomputed test-set embedding’s here.
+To investigate data leakage from benchmarks into this dataset, we construct a deduplication pipeline based on the sample images. We embed the images of 66 image-test datasets from the lmms-eval framework using the SSCD descriptor, and compute the cosine similarity between our samples and the test-set embeddings. Whenever a sample has a similarity higher than a threshold of 0.95 it is assumed to be a duplicate. While our tests with various thresholds show that this is still flagging more false-positives than false-negatives, we preferred to err on the side of caution. Below is an example of a correctly identified Duplicate ("Photo"), a false-positive with a similarity score above 0.95 ("Chart") and a false-negative with a similarity score below 0.95 ("Drawing"). We open-source the deduplication pipeline here as well as the precomputed test-set embedding’s here.
 
-<HtmlEmbed src="comparison.html" desc="desc"  title="title"/>
-
+<Wide>
+<HtmlEmbed src="comparison.html" desc="Examples of the Deduplication Pipeline."/>
+</Wide>
 
 | Name          | Samples	| Contamination Rate | Performance Drop |
 |---------------|---------|--------------------|------------------|
