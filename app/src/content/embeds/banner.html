@@ -82,12 +82,26 @@
 
       
 
-      d3.csv(csvUrl, d3.autoType).then((raw) => {
+      d3.csv(csvUrl, d3.autoType).then(async (raw) => {
         const data = raw.filter((d) => d && typeof d.x_position === 'number' && typeof d.y_position === 'number');
         const categories = Array.from(new Set(data.map((d) => d.category || 'Unknown')));
         const color = d3.scaleOrdinal().domain(categories).range(d3.schemeTableau10);
         const xDomain = d3.extent(data, (d) => d.x_position);
         const yDomain = d3.extent(data, (d) => d.y_position);
+
+        // Résolution du chemin des miniatures (comme comparison.html)
+        const CANDIDATE_BASES = [ '/data/banner-thumbnails/' ];
+        const resolveBase = (candidates, filename) => new Promise((resolve) => {
+          let idx = 0; const tryNext = () => {
+            if (idx >= candidates.length) return resolve(candidates[0]);
+            const img = new Image();
+            img.onload = () => resolve(candidates[idx]);
+            img.onerror = () => { idx += 1; tryNext(); };
+            img.src = candidates[idx] + filename;
+          }; tryNext();
+        });
+        const firstId = data && data.length ? data[0].original_id : '0';
+        const thumbBase = await resolveBase(CANDIDATE_BASES, `${firstId}.jpg`);
 
         // Centroides par catégorie (moyenne x/y)
         const centroids = Array.from(
@@ -242,11 +256,17 @@
                 d3.select(this).raise()
                   .attr('stroke', isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.85)')
                   .attr('stroke-width', 1.2);
+                const imgSrc = `${thumbBase}${d.original_id}.jpg`;
                 tipInner.innerHTML =
-                  `<div><strong>${d.category || 'Unknown'}</strong></div>` +
-                  `<div><strong>ID</strong> ${d.original_id}</div>` +
-                  `<div><strong>Subset</strong> ${d.subset ?? '—'}</div>` +
-                  `<div><strong>X</strong> ${d.x_position} · <strong>Y</strong> ${d.y_position}</div>`;
+                  `<div style="display:flex; gap:10px; align-items:flex-start;">` +
+                    `<img src="${imgSrc}" alt="thumb ${d.original_id}" style="width:120px;height:120px;object-fit:cover;flex:0 0 auto;border-radius:6px;border:1px solid var(--border-color);" />` +
+                    `<div style="min-width:140px;">` +
+                      `<div><strong>${d.category || 'Unknown'}</strong></div>` +
+                      `<div><strong>ID</strong> ${d.original_id}</div>` +
+                      `<div><strong>Subset</strong> ${d.subset ?? '—'}</div>` +
+                      `<div><strong>X</strong> ${d.x_position} · <strong>Y</strong> ${d.y_position}</div>` +
+                    `</div>` +
+                  `</div>`;
                 tip.style.opacity = '1';
               })
               .on('mousemove', (ev) => {
