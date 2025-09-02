@@ -88,8 +88,8 @@ main > nav:first-of-type { display: none; }
 .full-width { box-sizing: border-box; position: relative; z-index: var(--z-elevated); }
 
 .wide {
-  /* Target up to ~1100px while staying within viewport minus page gutters */
-  width: min(1100px, 100vw - 32px);
+  /* Target up to ~1400px while staying within viewport minus page gutters */
+  width: min(1400px, 100vw - 32px);
   margin-left: 50%;
   transform: translateX(-50%);
 }
