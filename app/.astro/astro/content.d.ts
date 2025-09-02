@@ -185,13 +185,11 @@ declare module 'astro:content' {
 	};
 
 	type DataEntryMap = {
-		"assets": {
-"data/mnist-variant-model": {
-	id: "data/mnist-variant-model";
+		"assets": Record<string, {
+  id: string;
   collection: "assets";
-  data: any
-};
-};
+  data: any;
+}>;
 "embeds": Record<string, {
   id: string;
   collection: "embeds";

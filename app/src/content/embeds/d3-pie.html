@@ -110,23 +110,10 @@
       function drawPies(rows){
         const { innerWidth, innerHeight } = updateSize();
 
-        // Categories
-        const categories = Array.from(new Set(rows.map(r => r.eagle_cathegory))).sort();
-
-        // Build a categorical palette anchored on bar chart vibes + theme primary
-        const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#E889AB';
-        const base = [primary, '#4EA5B7', '#E38A42', '#CEC0FA'];
-        const pool = Array.from(new Set([
-          ...base,
-          ...(d3.schemeTableau10 || []),
-          ...(d3.schemeSet3 || []),
-          ...(d3.schemePastel1 || []),
-        ].flat().filter(Boolean)));
-
-        const colorOf = (cat) => {
-          const idx = categories.indexOf(cat);
-          return pool[idx % pool.length] || primary;
-        };
+        // Catégories (triées) + échelle de couleurs harmonisée avec banner.html
+        const categories = Array.from(new Set(rows.map(r => r.eagle_cathegory || 'Unknown'))).sort();
+        const color = d3.scaleOrdinal().domain(categories).range(d3.schemeTableau10);
+        const colorOf = (cat) => color(cat || 'Unknown');
 
         // Legend will be positioned after radius is known
 

@@ -84,7 +84,8 @@
 
       d3.csv(csvUrl, d3.autoType).then(async (raw) => {
         const data = raw.filter((d) => d && typeof d.x_position === 'number' && typeof d.y_position === 'number');
-        const categories = Array.from(new Set(data.map((d) => d.category || 'Unknown')));
+        // Tri des catégories pour un ordre stable et correspondance avec d3-pie
+        const categories = Array.from(new Set(data.map((d) => d.category || 'Unknown'))).sort();
         const color = d3.scaleOrdinal().domain(categories).range(d3.schemeTableau10);
         const xDomain = d3.extent(data, (d) => d.x_position);
         const yDomain = d3.extent(data, (d) => d.y_position);
@@ -137,7 +138,7 @@
           gCentroids.attr('transform', `translate(0, ${padTop})`);
 
           // Centroides en labels: doublage (fond blanc + texte couleur) + anti-chevauchement
-          const fontPx = 16;
+          const fontPx = 18;
           const estimateTextWidth = (s) => Math.max(fontPx, (s ? String(s).length : 0) * fontPx * 0.62 + 8);
 
           // Prépare des noeuds à l'échelle pixel pour la simulation
@@ -221,14 +222,14 @@
           mergedC.select('text.label-bg').each(function() {
             this.style.setProperty('fill', 'var(--surface-bg)', 'important');
             this.style.setProperty('stroke', 'var(--surface-bg)', 'important');
-            this.style.setProperty('stroke-width', '6', 'important');
+            this.style.setProperty('stroke-width', '10', 'important');
             this.style.setProperty('font-weight', '900', 'important');
             this.style.setProperty('font-size', `${fontPx}px`, 'important');
           });
           mergedC.select('text.label-fg').each(function(d) {
             const base = d3.color(color(d.category || 'Unknown'));
             const adjusted = base
-              ? (isDark ? base.brighter(0.8) : base.darker(0.7)).toString()
+              ? (isDark ? base.brighter(0.8) : base.darker(.8)).toString()
               : color(d.category || 'Unknown');
             this.style.setProperty('fill', adjusted, 'important');
             this.style.setProperty('font-weight', '900', 'important');
@@ -264,7 +265,6 @@
                       `<div><strong>${d.category || 'Unknown'}</strong></div>` +
                       `<div><strong>ID</strong> ${d.original_id}</div>` +
                       `<div><strong>Subset</strong> ${d.subset ?? '—'}</div>` +
-                      `<div><strong>X</strong> ${d.x_position} · <strong>Y</strong> ${d.y_position}</div>` +
                     `</div>` +
                   `</div>`;
                 tip.style.opacity = '1';
