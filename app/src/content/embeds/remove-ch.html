@@ -411,7 +411,7 @@
           rankTickMax = Math.max(1, Math.round(maxVal));
           yScale.domain([rankTickMax, 1]);
         } else {
-          yScale.domain([0, Math.max(1, maxVal)]).nice();
+          yScale.domain([minVal, maxVal]).nice();
         }
         isRankStrictFlag = isRankStrict;
 

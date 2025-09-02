@@ -111,13 +111,12 @@
           const meta = document.createElement('div'); meta.className = 'meta';
           
           if (isQuery) {
-            const label = document.createElement('span'); label.className = 'label'; label.textContent = 'Query';
+            const label = document.createElement('span'); label.className = 'value'; label.textContent = 'Query';
             meta.appendChild(label);
           } else {
-            const label = document.createElement('span'); label.className = 'label'; label.textContent = `Match ${idx}:`;
-            const similarity = document.createElement('span'); similarity.className = 'value'; similarity.textContent = `Similarity: ${formatSim(sim)}`;
-            meta.appendChild(label);
-            meta.appendChild(similarity);
+            const content = document.createElement('span');
+            content.innerHTML = `<span class="value">Match ${idx}</span><br><span class="label">Similarity: ${formatSim(sim)}</span>`;
+            meta.appendChild(content);
           }
           
           card.appendChild(media); card.appendChild(meta); grid.appendChild(card);

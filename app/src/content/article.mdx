@@ -27,9 +27,15 @@ import visualPoster from "./assets/images/visual-vocabulary-poster.png";
 import Accordion from '../components/Accordion.astro'
 
 <Sidenote>
-  TLDR; Today, we release FineVision, a new multimodal dataset with 17M images, 24 million samples, 90M question-answer turns and 10B answer tokens. We have extensively cleaned, analysed, and rated every single turn across 4 qualitative metrics with a score from 1-5 to enable the construction and study of individual training mixtures. 
+  TLDR; Today, we release FineVision, a new multimodal dataset with 17M images, 24 million samples, 90M question-answer turns and 10B answer tokens comprising 5TB. We have extensively cleaned, analysed, and rated every single turn across 4 qualitative metrics with a score from 1-5 to enable the construction and study of individual training mixtures. 
   
-  Additionally, we ran extensive ablations and compared the performance of models trained on our dataset with common open source alternatives, and achieved better model performance and higher quantity and diversity of data.
+  Additionally, we ran extensive ablations and compared the performance of models trained on our dataset with common open source alternatives. Our dataset is both more divers, and achieves an average improvement of 35% in 10 common benchmarks over all baselines.
+
+  To use the dataset, simply load it with:
+  ```python
+  from datasets import load_dataset
+  ds = load_dataset('HuggingFaceM4/FineVision', name='ai2d_merged', split='train', streaming=True)
+  ```
 </Sidenote>
 
 ## Introduction
@@ -39,7 +45,7 @@ Even though open-weights Vision-Language Models (VLMs) are becoming ever more po
 ### Data Collection
 We manually collect over 180 image-text datasets from the recent literature and create new subsets in lacking domains.
 
-<FullWidth>
+<Wide>
 <Accordion title="FineVision Subsets">
 |Subset Name                           |Total Images|Total Samples|Total Turns|Total Question Tokens|Total Answer Tokens|Category              |
 |--------------------------------------|------------|-------------|-----------|---------------------|-------------------|----------------------|
@@ -229,7 +235,7 @@ We manually collect over 180 image-text datasets from the recent literature and 
 |text_wizardlm_evol                    |0           |69,999       |69,999     |7,753,963            |21,955,856         |Text-only             |
 |text_OpenMathInstruct-2               |0           |1,000,000    |1,000,000  |74,905,850           |413,132,418        |Text-only             |
 </Accordion>
-</FullWidth>
+</Wide>
 
 ### Cleaning
 After gathering all the sub-datasets, every turn is cleaned. We remove all individual turns whose combined question and answer length exceeds 8192 tokens. We resize big images to have a longest side of 2048 pixels while keeping the aspect ratio, and discard images with corrupted metadata. This results in a clean final dataset with a maximum turn length of 8192 tokens and a maximum image dimension of 2048 pixels on the longest side.
@@ -241,9 +247,9 @@ There are multiple ways to count the data in a multimodal dataset. The most comm
 
 In total, FineVision has 17.3M images, 24.3M samples, 88.9M turns, and 9.5B answer tokens. Based on these 4 distributions, multiple different mixtures are possible. In conjunction with the provided ratings, we encourage the community to experiment with downsampling large categories, for example according to quality and diversity criteria, and with upsampling high quality samples in small categories.
 
-<FullWidth>
+<Wide>
   <HtmlEmbed src="d3-pie.html" desc="Distribution of Categories in FineVision" align="center" />
-</FullWidth>
+</Wide>
 
 ## Experimental Setup
 To evaluate how our dataset compares to other open-source datasets, we conduct various experiments.
@@ -261,15 +267,16 @@ To evaluate our ablations in a reproducible manner, we utilize lmms-eval during 
 Each of our ablations trains a 450M model with maximal image size of 1536x1536 pixel (without resizing smaller images) and a maximal input token length of 4096. In all single stage configurations we train for 20k Steps on 32 H100s for approximately 20h while evaluating all 11 benchmarks every 1k Steps. If not specified otherwise, the “Baseline” in our intra dataset ablations refers to a training run on the full unfiltered and unchanged dataset
 
 ### How does FineVision compare against the Baselines?
-Compared against existing VLM training datasets, FineVision produces significantly higher benchmark ranks than the other options.
+Compared against existing VLM training datasets, FineVision produces significantly higher benchmark ranks than the other options. Over the 10 different metrics, FineVision achieves a 45.68% improvement over the Cauldron, a 13.04% improvement over Cambrian, and a 46.83% improvement over LLaVa.
 
 <HtmlEmbed src="against-baselines.html" desc="Average Rank of Models trained on different open source datasets." />
 
 ### How contaminated are the datasets?
-To investigate data leakage from benchmarks into this dataset, we construct a deduplication pipeline based on the sample images. We embed the images of 66 image-test datasets from the lmms-eval framework using the SSCD descriptor, and compute the cosine similarity between our samples and the test-set embeddings. Whenever a sample has a similarity higher than a threshold of 0.95 it is assumed to be a duplicate. While our tests with various thresholds show that this is flagging some samples that are not actual duplicates (especially if the image depicts similar but different images in detail, like graphs or tables), we preferred to err on the side of caution. We open-source the deduplication pipeline here as well as the precomputed test-set embedding’s here.
+To investigate data leakage from benchmarks into this dataset, we construct a deduplication pipeline based on the sample images. We embed the images of 66 image-test datasets from the lmms-eval framework using the SSCD descriptor, and compute the cosine similarity between our samples and the test-set embeddings. Whenever a sample has a similarity higher than a threshold of 0.95 it is assumed to be a duplicate. While our tests with various thresholds show that this is still flagging more false-positives than false-negatives, we preferred to err on the side of caution. Below is an example of a correctly identified Duplicate ("Photo"), a false-positive with a similarity score above 0.95 ("Chart") and a false-negative with a similarity score below 0.95 ("Drawing"). We open-source the deduplication pipeline here as well as the precomputed test-set embedding’s here.
 
-<HtmlEmbed src="comparison.html" desc="desc"  title="title"/>
-
+<Wide>
+<HtmlEmbed src="comparison.html" desc="Examples of the Deduplication Pipeline."/>
+</Wide>
 
 | Name          | Samples	| Contamination Rate | Performance Drop |
 |---------------|---------|--------------------|------------------|
