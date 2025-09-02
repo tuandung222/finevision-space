@@ -34,7 +34,7 @@ import Accordion from '../components/Accordion.astro'
   To use the dataset, simply load it with:
   ```python
   from datasets import load_dataset
-  
+
   ds = load_dataset('HuggingFaceM4/FineVision', name='ai2d_merged', split='train', streaming=True)
   ```
 </Sidenote>
@@ -477,9 +477,11 @@ Even though our first proposal to judge the quality of multimodal data on a per-
 
 ---
 <HtmlEmbed src="formatting-filters.html" title="Formatting Filter" desc="Average Rank of Models that have the Formatting Filter above a threshold." />
+<br/>
 <HtmlEmbed src="relevance-filters.html" title="Relevance Filter" desc="Average Rank of Models that have the Relevance Filter above a threshold." />
 ---
 <HtmlEmbed src="visual-dependency-filters.html" title="Visual Dependency Filter" desc="Average Rank of Models that have the Visual Dependency Filter above a threshold." />
+<br/>
 <HtmlEmbed src="image-correspondence-filters.html" title="Image Correspondence Filter" desc="Average Rank of Models that have the Image-Correspondence Filter above a threshold." />
 ---
 
