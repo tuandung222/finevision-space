@@ -74,6 +74,7 @@
 </style>
 <script>
   (() => {
+    const THIS_SCRIPT = document.currentScript;
     const ensureD3 = (cb) => {
       if (window.d3 && typeof window.d3.select === 'function') return cb();
       let s = document.getElementById('d3-cdn-script');
@@ -89,9 +90,23 @@
     };
 
     const bootstrap = () => {
-      const mount = document.currentScript ? document.currentScript.previousElementSibling : null;
-      const container = (mount && mount.querySelector && mount.querySelector('.d3-line')) || document.querySelector('.d3-line');
+      const scriptEl = THIS_SCRIPT;
+      const host = scriptEl && scriptEl.parentElement;
+      let container = null;
+      if (host && host.querySelector) {
+        container = host.querySelector('.d3-line') || host.querySelector('.d3-runline');
+      }
+      if (!container) {
+        let sib = scriptEl && scriptEl.previousElementSibling;
+        while (sib && !(sib.classList && (sib.classList.contains('d3-line') || sib.classList.contains('d3-runline')))) {
+          sib = sib.previousElementSibling;
+        }
+        container = sib || document.querySelector('.d3-line, .d3-runline');
+      }
       if (!container) return;
+      if (container.classList && container.classList.contains('d3-runline') && !container.classList.contains('d3-line')) {
+        container.classList.add('d3-line');
+      }
       if (container.dataset) {
         if (container.dataset.mounted === 'true') return;
         container.dataset.mounted = 'true';

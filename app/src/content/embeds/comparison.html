@@ -36,9 +36,21 @@
 </style>
 <script>
   (() => {
+    const THIS_SCRIPT = document.currentScript;
     const bootstrap = () => {
-      const mount = document.currentScript ? document.currentScript.previousElementSibling : null;
-      const container = (mount && mount.querySelector && mount.querySelector('.image-comparison')) || document.querySelector('.image-comparison');
+      const scriptEl = THIS_SCRIPT;
+      const host = scriptEl && scriptEl.parentElement;
+      let container = null;
+      if (host && host.querySelector) {
+        container = host.querySelector('.image-comparison');
+      }
+      if (!container) {
+        let sib = scriptEl && scriptEl.previousElementSibling;
+        while (sib && !(sib.classList && sib.classList.contains('image-comparison'))) {
+          sib = sib.previousElementSibling;
+        }
+        container = sib || document.querySelector('.image-comparison');
+      }
       if (!container) return;
       if (container.dataset && container.dataset.mounted === 'true') return; if (container.dataset) container.dataset.mounted = 'true';
 
