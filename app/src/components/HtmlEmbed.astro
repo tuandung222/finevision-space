@@ -31,6 +31,12 @@ const mountId = `frag-${Math.random().toString(36).slice(2)}`;
   <div><!-- Fragment not found: {src} --></div>
  ) }
 
+<script type="module" is:inline>
+  // Ensure global color palettes generator is loaded once per page
+  import '../scripts/color-palettes.js';
+  export {};
+</script>
+
 <script>
   // Re-execute <script> tags inside the injected fragment (innerHTML doesn't run scripts)
   const scriptEl = document.currentScript;
@@ -45,7 +51,7 @@ const mountId = `frag-${Math.random().toString(36).slice(2)}`;
       old.dataset.executed = 'true';
       if (old.src) {
         const s = document.createElement('script');
-        Array.from(old.attributes).forEach(({ name, value }) => s.setAttribute(name, value));
+        Array.from(old.attributes).forEach(attr => s.setAttribute(attr.name, attr.value));
         document.body.appendChild(s);
       } else {
         try {
@@ -57,14 +63,13 @@ const mountId = `frag-${Math.random().toString(36).slice(2)}`;
       }
     });
   };
-  // Ensure execution when ready: run now if Plotly or D3 is present, or when document is ready; otherwise wait for 'load'
-  // @ts-expect-error: Plotly/d3 are attached globally at runtime via embeds
-  if (window.Plotly || window.d3 || document.readyState === 'complete') execute();
-  else window.addEventListener('load', execute, { once: true });
+  // Execute after DOM is parsed (ensures deferred module scripts are executed first)
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', execute, { once: true });
+  else execute();
   </script>
 
-<style>
-  .html-embed { margin: 0; }
+<style is:global>
+  .html-embed { margin: 0 0 var(--block-spacing-y); overflow: hidden; }
   .html-embed__title { 
     text-align: left; 
     font-weight: 600; 
@@ -89,9 +94,38 @@ const mountId = `frag-${Math.random().toString(36).slice(2)}`;
     color: var(--muted-color); 
     margin: 6px 0 0 0; 
   }
-  @media (prefers-color-scheme: dark) {
-    [data-theme="dark"] .html-embed__card:not(.is-frameless) { background: #12151b; border-color: rgba(255,255,255,.15); }
-  }
+  /* Plotly – fragments & controls */
+  .html-embed__card svg text { fill: var(--text-color) !important; }
+  .html-embed__card label { color: var(--text-color) !important; }
+  .plotly-graph-div { width: 100% !important; min-height: 320px; }
+  @media (max-width: 768px) { .plotly-graph-div { min-height: 260px; } }
+  [id^="plot-"] { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+  .plotly_caption { font-style: italic; margin-top: 10px; }
+  .plotly_controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; }
+  .plotly_input_container { display: flex; align-items: center; flex-direction: column; gap: 10px; }
+  .plotly_input_container > select { padding: 2px 4px; line-height: 1.5em; text-align: center; border-radius: 4px; font-size: 12px; background-color: var(--neutral-200); outline: none; border: 1px solid var(--neutral-300); }
+  .plotly_slider { display: flex; align-items: center; gap: 10px; }
+  .plotly_slider > input[type="range"] { -webkit-appearance: none; appearance: none; height: 2px; background: var(--neutral-400); border-radius: 5px; outline: none; }
+  .plotly_slider > input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--primary-color); cursor: pointer; }
+  .plotly_slider > input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--primary-color); cursor: pointer; }
+  .plotly_slider > span { font-size: 14px; line-height: 1.6em; min-width: 16px; }
+  /* Dark mode overrides for Plotly readability */
+  [data-theme="dark"] .html-embed__card:not(.is-frameless) { background: #12151b; border-color: rgba(255,255,255,.15); }
+  [data-theme="dark"] .html-embed__card .xaxislayer-above text,
+  [data-theme="dark"] .html-embed__card .yaxislayer-above text,
+  [data-theme="dark"] .html-embed__card .infolayer text,
+  [data-theme="dark"] .html-embed__card .legend text,
+  [data-theme="dark"] .html-embed__card .annotation text,
+  [data-theme="dark"] .html-embed__card .colorbar text,
+  [data-theme="dark"] .html-embed__card .hoverlayer text { fill: #fff !important; }
+  [data-theme="dark"] .html-embed__card .xaxislayer-above path,
+  [data-theme="dark"] .html-embed__card .yaxislayer-above path,
+  [data-theme="dark"] .html-embed__card .xlines-above,
+  [data-theme="dark"] .html-embed__card .ylines-above { stroke: rgba(255,255,255,.35) !important; }
+  [data-theme="dark"] .html-embed__card .gridlayer path { stroke: rgba(255,255,255,.15) !important; }
+  [data-theme="dark"] .html-embed__card .legend rect.bg { fill: rgba(0,0,0,.25) !important; stroke: rgba(255,255,255,.2) !important; }
+  [data-theme="dark"] .html-embed__card .hoverlayer .bg { fill: rgba(0,0,0,.8) !important; stroke: rgba(255,255,255,.2) !important; }
+  [data-theme="dark"] .html-embed__card .colorbar .cbbg { fill: rgba(0,0,0,.25) !important; stroke: rgba(255,255,255,.2) !important; }
   @media print {
     .html-embed, .html-embed__card { max-width: 100% !important; width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
     .html-embed__card { padding: 6px; }

@@ -3,12 +3,24 @@ title: "FineVision:<br/> Open Data is all you need"
 subtitle: "A new open dataset for data-centric training of Vision Language Models"
 description: "A new open dataset for data-centric training of Vision Language Models"
 authors:
-  - "Luis Wiedmann"
-  - "Orr Zohar"
-  - "Andi Marafioti"
-  - "Amir Mahla"
-  - "Thibaud Frere"
-affiliation: "Hugging Face"
+  - name: "Luis Wiedmann"
+    url: "https://huggingface.co/lusxvr"
+    affiliations: [1]
+  - name: "Orr Zohar"
+    url: "https://huggingface.co/orrzohar"
+    affiliations: [1]
+  - name: "Andi Marafioti"
+    url: "https://huggingface.co/andito" 
+    affiliations: [1]
+  - name: "Amir Mahla"
+    url: "https://huggingface.co/A-Mahla"
+    affiliations: [1]
+  - name: "Thibaud Frere"
+    url: "https://huggingface.co/tfrere"
+    affiliations: [1]
+affiliations:
+  - name: "Hugging Face"
+    url: "https://huggingface.co"
 published: "Sep 4, 2025"
 tags:
   - research
@@ -33,6 +45,8 @@ import Accordion from '../components/Accordion.astro'
   Additionally, we ran extensive ablations and compared the performance of models trained on our dataset with common open source alternatives. Our dataset is both more divers, and achieves an average improvement of **35%** in **10 common benchmarks** over all baselines.
 
   To use the dataset, simply load it with:
+
+  <small class="muted">python</small>
   ```python
   from datasets import load_dataset
 
@@ -51,7 +65,6 @@ Projects like The Cauldron, LLaVa and Cambrian aim to provide such datasets, but
 ### Data Collection
 We manually collect **over 180** image-text datasets from the recent literature and create new subsets in lacking domains.
 
-<Wide>
 <Accordion title="FineVision Subsets">
 |Subset Name                           |Total Images|Total Samples|Total Turns|Total Question Tokens|Total Answer Tokens|Category              |Source                                                             |
 |--------------------------------------|------------|-------------|-----------|---------------------|-------------------|----------------------|-------                                                            |
@@ -242,7 +255,6 @@ We manually collect **over 180** image-text datasets from the recent literature 
 |text_OpenMathInstruct-2               |0           |1,000,000    |1,000,000  |74,905,850           |413,132,418        |Text-only             |[@toshniwal_openmathinstruct-2_2024]                               |
 
 </Accordion>
-</Wide>
 
 ### Cleaning
 After gathering all the sub-datasets, every turn is cleaned.
