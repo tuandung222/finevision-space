@@ -89,16 +89,16 @@ const wrapperClass = ["accordion", className].filter(Boolean).join(" ");
   }
 
   .accordion__summary {
-    margin: 0;
     list-style: none;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 4px;
-    padding: 10px 8px;
+    padding: 4px;
     cursor: pointer;
     color: var(--text-color);
     user-select: none;
+    position: relative;
   }
 
   /* Remove conditional padding to avoid jump on close */
@@ -116,7 +116,8 @@ const wrapperClass = ["accordion", className].filter(Boolean).join(" ");
   }
 
   .accordion__chevron {
-    flex: 0 0 auto;
+    position: absolute;
+    right: 8px;
     transition: transform 220ms ease;
     opacity: .85;
   }
