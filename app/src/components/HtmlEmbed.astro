@@ -1,48 +1,18 @@
 ---
-interface Props { src: string; title?: string; desc?: string; frameless?: boolean; align?: 'left' | 'center' | 'right' }
-const { src, title, desc, frameless = false, align = 'left' } = Astro.props as Props;
+interface Props { src: string; title?: string; desc?: string; frameless?: boolean; align?: 'left' | 'center' | 'right'; id?: string }
+const { src, title, desc, frameless = false, align = 'left', id } = Astro.props as Props;
 
 // Load all .html embeds under src/content/embeds/** as strings (dev & build)
 const embeds = (import.meta as any).glob('../content/embeds/**/*.html', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 
 function resolveFragment(requested: string): string | null {
-  // Résolution tolérante: accepte avec/sans "embeds/", avec/sans ".html", insensible à la casse, et recherche par basename
-  const norm = (s: string) => String(s || '')
-    .trim()
-    .replace(/^\/*/, '')
-    .replace(/^\.\//, '')
-    .toLowerCase();
-  const raw = norm(requested);
-  const withHtml = raw.endsWith('.html') ? raw : `${raw}.html`;
-  const stripEmbeds = (s: string) => s.replace(/^embeds\//, '');
-  const v1 = raw;
-  const v2 = withHtml;
-  const v3 = stripEmbeds(v1);
-  const v4 = stripEmbeds(v2);
-  const needles = new Set([v1, v2, v3, v4]);
-
-  // Construire table des chemins normalisés -> contenu
-  const entries = Object.entries(embeds).map(([key, html]) => {
-    const nk = norm(key);
-    const base = nk.split('/').pop() || nk;
-    return { nk, base, html };
-  });
-
-  // 1) Correspondance par fin de chemin complète
-  for (const e of entries) {
-    for (const v of needles) {
-      if (e.nk.endsWith('/' + v) || e.nk === v) return e.html;
+  // Allow both "banner.html" and "embeds/banner.html"
+  const needle = requested.replace(/^\/*/, '');
+  for (const [key, html] of Object.entries(embeds)) {
+    if (key.endsWith('/' + needle) || key.endsWith('/' + needle.replace(/^embeds\//, ''))) {
+      return html;
     }
   }
-
-  // 2) Correspondance par basename
-  for (const e of entries) {
-    for (const v of needles) {
-      const vb = v.split('/').pop();
-      if (e.base === vb) return e.html;
-    }
-  }
-
   return null;
 }
 
@@ -50,7 +20,7 @@ const html = resolveFragment(src);
 const mountId = `frag-${Math.random().toString(36).slice(2)}`;
 ---
 { html ? (
-  <figure class="html-embed">
+  <figure class="html-embed" id={id}>
     {title && <figcaption class="html-embed__title" style={`text-align:${align}`}>{title}</figcaption>}
     <div class={`html-embed__card${frameless ? ' is-frameless' : ''}`}>
       <div id={mountId} set:html={html} />
@@ -99,7 +69,7 @@ const mountId = `frag-${Math.random().toString(36).slice(2)}`;
   </script>
 
 <style is:global>
-  .html-embed { margin: 0 0 var(--block-spacing-y); }
+  .html-embed { margin: 0 0 var(--block-spacing-y); overflow: hidden; }
   .html-embed__title { 
     text-align: left; 
     font-weight: 600; 
