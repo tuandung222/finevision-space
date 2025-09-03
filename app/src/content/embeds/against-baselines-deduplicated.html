@@ -180,6 +180,7 @@
       const gRoot = svg.append('g');
       const gGrid = gRoot.append('g').attr('class', 'grid');
       const gAxes = gRoot.append('g').attr('class', 'axes');
+      const gAreas = gRoot.append('g').attr('class', 'areas');
       const gLines = gRoot.append('g').attr('class', 'lines');
       const gPoints = gRoot.append('g').attr('class', 'points');
       const gHover = gRoot.append('g').attr('class', 'hover');
@@ -428,8 +429,26 @@
           values: (map[r]||[])
             .slice()
             .sort((a,b)=>a.step-b.step)
-            .map(pt => isRankStrict ? { step: pt.step, value: Math.round(pt.value) } : pt)
+            .map(pt => isRankStrict ? { step: pt.step, value: Math.round(pt.value), stderr: pt.stderr } : pt)
         }));
+
+        // Uncertainty area (± stderr) for non-rank metrics
+        gAreas.selectAll('*').remove();
+        if (!isRank) {
+          series.forEach((s) => {
+            const withErr = s.values.filter(v => v && v.stderr != null && isFinite(v.stderr) && v.stderr > 0 && isFinite(v.value));
+            if (withErr.length === 0) return;
+            const upper = withErr.map(d => [xScale(d.step), yScale(d.value + d.stderr)]);
+            const lower = withErr.slice().reverse().map(d => [xScale(d.step), yScale(d.value - d.stderr)]);
+            const coords = upper.concat(lower);
+            const pathData = d3.line().x(d=>d[0]).y(d=>d[1]).curve(d3.curveLinearClosed)(coords);
+            gAreas.append('path')
+              .attr('d', pathData)
+              .attr('fill', s.color)
+              .attr('opacity', 0.15)
+              .attr('stroke', 'none');
+          });
+        }
 
         // Draw lines
         const paths = gLines.selectAll('path.run-line').data(series, d=>d.run);
@@ -531,11 +550,12 @@
           // Tooltip content
           let html = `<div><strong>${getMetricDisplayName(metricKey)}</strong></div><div><strong>step</strong> ${nearest}</div>`;
           series.forEach(s=>{
-            const m = new Map(s.values.map(v=>[v.step, v.value]));
-            const val = m.has(nearest) ? m.get(nearest) : null;
-            if (val != null) {
+            const m = new Map(s.values.map(v=>[v.step, v]));
+            const pt = m.get(nearest);
+            if (pt && pt.value != null) {
               const formatVal = (vv) => (isRankStrict ? d3.format('d')(vv) : (+vv).toFixed(4));
-              html += `<div><span style=\"display:inline-block;width:10px;height:10px;background:${s.color};border-radius:50%;margin-right:6px;\"></span><strong>${s.run}</strong> ${formatVal(val)}</div>`;
+              const errTxt = (pt.stderr != null && isFinite(pt.stderr) && pt.stderr > 0) ? ` ± ${formatVal(pt.stderr)}` : '';
+              html += `<div><span style=\"display:inline-block;width:10px;height:10px;background:${s.color};border-radius:50%;margin-right:6px;\"></span><strong>${s.run}</strong> ${formatVal(pt.value)}${errTxt}</div>`;
             }
           });
           tipInner.innerHTML = html;
@@ -552,7 +572,13 @@
       (async () => {
         try {
           const text = await fetchFirstAvailable(CSV_PATHS);
-          const rows = d3.csvParse(text, d => ({ run: (d.run||'').trim(), step: +d.step, metric: (d.metric||'').trim(), value: +d.value }));
+          const rows = d3.csvParse(text, d => ({
+            run: (d.run||'').trim(),
+            step: +d.step,
+            metric: (d.metric||'').trim(),
+            value: +d.value,
+            stderr: (d.stderr != null && d.stderr !== '') ? +d.stderr : null
+          }));
           metricList = Array.from(new Set(rows.map(r=>r.metric))).sort();
           runList = Array.from(new Set(rows.map(r=>r.run))).sort();
           runOrder = runList;
@@ -560,7 +586,7 @@
           metricList.forEach(m => {
             const map = {};
             runList.forEach(r => { map[r] = []; });
-            rows.filter(r=>r.metric===m).forEach(r => { if (!isNaN(r.step) && !isNaN(r.value)) map[r.run].push({ step:r.step, value:r.value }); });
+            rows.filter(r=>r.metric===m).forEach(r => { if (!isNaN(r.step) && !isNaN(r.value)) map[r.run].push({ step:r.step, value:r.value, stderr:r.stderr }); });
             dataByMetric.set(m, map);
           });
 

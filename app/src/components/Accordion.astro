@@ -101,6 +101,11 @@ const wrapperClass = ["accordion", className].filter(Boolean).join(" ");
     position: relative;
   }
 
+  .accordion[size="big"] .accordion__summary {
+    padding: 16px;
+  }
+
+
   /* Remove conditional padding to avoid jump on close */
 
   /* Remove native marker */
@@ -160,6 +165,7 @@ const wrapperClass = ["accordion", className].filter(Boolean).join(" ");
     padding: 0;
   }
 
+
   /* Separator between header and content when open (edge-to-edge) */
   .accordion[open] .accordion__content-wrapper::before {
     content: "";
@@ -178,6 +184,7 @@ const wrapperClass = ["accordion", className].filter(Boolean).join(" ");
     outline-offset: 3px;
     border-radius: 8px;
   }
+  
 
 
 </style>
