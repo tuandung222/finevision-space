@@ -140,7 +140,7 @@
 
       const labelMetric = document.createElement('label');
       Object.assign(labelMetric.style, {
-        fontSize: '12px', color: 'var(--muted-color)', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', padding: '6px 10px', marginLeft: 'auto'
+        fontSize: '11px', color: 'var(--muted-color)', opacity: 0.8, display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', padding: '6px 10px', marginLeft: 'auto'
       });
       labelMetric.textContent = 'Metric';
       const selectMetric = document.createElement('select');
@@ -155,7 +155,7 @@
         gap: '8px',
         alignItems: 'center',
         flexWrap: 'nowrap',
-        fontSize: '11px',
+        fontSize: '14px',
         marginLeft: '8px'
       });
       controls.appendChild(legendInline);
@@ -171,7 +171,7 @@
       
       // Academic marker shapes
       const markerShapes = ['circle', 'square', 'triangle', 'diamond', 'inverted-triangle'];
-      const markerSize = 8;
+      const markerSize = 9;
 
       // Groups
       const gRoot = svg.append('g');
@@ -266,6 +266,28 @@
             return selection.append('path').attr('d', `M0,${s * 1.2} L${s * 1.1},${-s * 0.6} L${-s * 1.1},${-s * 0.6} Z`);
           default:
             return selection.append('circle').attr('r', s);
+        }
+      }
+
+      // Small SVG markup for marker shape (used in tooltip)
+      function shapeSvgMarkup(shape, color) {
+        const size = 9; // visual marker size
+        const half = size / 2;
+        const cx = 9, cy = 7; // center for 18x14 viewport
+        const stroke = color;
+        switch (shape) {
+          case 'circle':
+            return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><circle r="${half}" fill="${color}" stroke="${stroke}" stroke-width="1"/></g></svg>`;
+          case 'square':
+            return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><rect x="${-half}" y="${-half}" width="${size}" height="${size}" fill="${color}" stroke="${stroke}" stroke-width="1"/></g></svg>`;
+          case 'triangle':
+            return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><path d="M0,${-half * 1.2} L${half * 1.1},${half * 0.6} L${-half * 1.1},${half * 0.6} Z" fill="${color}" stroke="${stroke}" stroke-width="1"/></g></svg>`;
+          case 'diamond':
+            return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><path d="M0,${-half * 1.2} L${half * 1.1},0 L0,${half * 1.2} L${-half * 1.1},0 Z" fill="${color}" stroke="${stroke}" stroke-width="1"/></g></svg>`;
+          case 'inverted-triangle':
+            return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><path d="M0,${half * 1.2} L${half * 1.1},${-half * 0.6} L${-half * 1.1},${-half * 0.6} Z" fill="${color}" stroke="${stroke}" stroke-width="1"/></g></svg>`;
+          default:
+            return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><circle r="${half}" fill="${color}" stroke="${stroke}" stroke-width="1"/></g></svg>`;
         }
       }
 
@@ -482,15 +504,15 @@
           
           // Create small SVG for marker shape
           const markerSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-          markerSvg.setAttribute('width', '16');
-          markerSvg.setAttribute('height', '12');
+          markerSvg.setAttribute('width', '18');
+          markerSvg.setAttribute('height', '14');
           markerSvg.style.display = 'inline-block';
           
           const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-          g.setAttribute('transform', 'translate(8,6)');
+          g.setAttribute('transform', 'translate(9,7)');
           
           let shape;
-          const size = 6;
+          const size = 9;
           const halfSize = size / 2;
           switch(s.marker) {
             case 'circle':
@@ -543,17 +565,27 @@
           const sx = Math.max(steps[0], Math.min(steps[steps.length-1], Math.round(xScale.invert(mx)/1)*1));
           const nearest = steps.reduce((best, s)=> Math.abs(s - xScale.invert(mx)) < Math.abs(best - xScale.invert(mx)) ? s : best, steps[0]);
           const xpx = xScale(nearest);
-          hoverLine.attr('x1', xpx).attr('x2', xpx).style('display', null).attr('stroke', 'rgba(0,0,0,0.25)');
+          const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          const axisColor = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)';
+          hoverLine.attr('x1', xpx).attr('x2', xpx).style('display', null).attr('stroke', axisColor);
           // Tooltip content
           let html = `<div><strong>${getMetricDisplayName(metricKey)}</strong></div><div><strong>step</strong> ${nearest}</div>`;
-          series.forEach(s=>{
-            const m = new Map(s.values.map(v=>[v.step, v]));
-            const pt = m.get(nearest);
-            if (pt && pt.value != null) {
-              const formatVal = (vv) => (isRankStrict ? d3.format('d')(vv) : (+vv).toFixed(4));
-              const errTxt = (pt.stderr != null && isFinite(pt.stderr) && pt.stderr > 0) ? ` ± ${formatVal(pt.stderr)}` : '';
-              html += `<div><span style=\"display:inline-block;width:10px;height:10px;background:${s.color};border-radius:50%;margin-right:6px;\"></span><strong>${s.run}</strong> ${formatVal(pt.value)}${errTxt}</div>`;
-            }
+          const seriesWithPoint = series
+            .map(s => {
+              const m = new Map(s.values.map(v=>[v.step, v]));
+              const pt = m.get(nearest);
+              return { s, pt };
+            })
+            .filter(d => d.pt && d.pt.value != null);
+          // Sort runs at hovered step
+          seriesWithPoint.sort((a,b) => {
+            if (isRankStrict) return (b.pt.value - a.pt.value); // rank: descendant
+            return (a.pt.value - b.pt.value); // normal: ascendant
+          });
+          seriesWithPoint.forEach(({s, pt}) => {
+            const formatVal = (vv) => (isRankStrict ? d3.format('d')(vv) : (+vv).toFixed(4));
+            const errTxt = (pt.stderr != null && isFinite(pt.stderr) && pt.stderr > 0) ? ` ± ${formatVal(pt.stderr)}` : '';
+            html += `<div style=\"display:flex;align-items:center;gap:6px;white-space:nowrap;\">${shapeSvgMarkup(s.marker, s.color)}<strong>${s.run}</strong> ${formatVal(pt.value)}${errTxt}</div>`;
           });
           tipInner.innerHTML = html;
           const offsetX = 12, offsetY = 12;
@@ -578,7 +610,9 @@
           }));
           metricList = Array.from(new Set(rows.map(r=>r.metric))).sort();
           runList = Array.from(new Set(rows.map(r=>r.run))).sort();
-          runOrder = runList;
+          // Prioritize "FineVision" first in legend/order
+          const hasFV = runList.includes('FineVision');
+          runOrder = hasFV ? ['FineVision', ...runList.filter(r => r !== 'FineVision')] : runList;
           // Build dataByMetric
           metricList.forEach(m => {
             const map = {};

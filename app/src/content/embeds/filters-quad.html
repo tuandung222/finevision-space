@@ -15,7 +15,7 @@
   @media (max-width: 980px) { .filters-quad__grid { grid-template-columns: 1fr; } }
 
   .filters-quad__controls { display:flex; align-items:center; justify-content:center; gap:12px; margin: 6px 0 12px 0; flex-wrap:wrap; }
-  .filters-quad__controls label { font-size:14px; color: var(--text-color); font-weight:600; display:flex; align-items:center; gap:8px; }
+  .filters-quad__controls label { font-size:11px; color: var(--muted-color); opacity: .8; display:flex; align-items:center; gap:8px; }
   .filters-quad__controls select {
     font-size: 14px; padding: 8px 32px 8px 12px; border: 1px solid var(--border-color); border-radius: 10px;
     background-color: var(--surface-bg); color: var(--text-color);
@@ -28,7 +28,7 @@
   .filters-quad__controls select:hover { border-color: var(--primary-color); }
   .filters-quad__controls select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(232,137,171,.25); outline: none; }
 
-  .filters-quad__legend { display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; font-size:12px; color: var(--text-color); margin: 2px 0 10px 0; }
+  .filters-quad__legend { display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; font-size:14px; color: var(--text-color); margin: 2px 0 10px 0; }
   .filters-quad__legend .item { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
   .filters-quad__legend .swatch { width:10px; height:10px; border-radius:50%; display:inline-block; }
 
@@ -112,7 +112,7 @@
       const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#E889AB';
       const pool = [primary, '#4EA5B7', '#E38A42', '#CEC0FA', ...(d3.schemeTableau10||[])];
       const markerShapes = ['circle', 'square', 'triangle', 'diamond', 'inverted-triangle'];
-      const markerSize = 8;
+      const markerSize = 9;
       function drawMarker(selection, shape, size) {
         const s = size / 2;
         switch (shape) {
@@ -163,8 +163,8 @@
         gAxes.selectAll('*').remove();
         let xAxis = d3.axisBottom(xScale).tickSizeOuter(0); xAxis = xAxis.ticks(8);
         const yAxis = d3.axisLeft(yScale).tickValues(yTicks).tickSizeOuter(0).tickFormat(isRankStrictFlag ? d3.format('d') : d3.format('.2f'));
-        gAxes.append('g').attr('transform', `translate(0,${innerHeight})`).call(xAxis).call(g=>{ g.selectAll('path, line').attr('stroke',axisColor); g.selectAll('text').attr('fill',tickColor).style('font-size','11px'); });
-        gAxes.append('g').call(yAxis).call(g=>{ g.selectAll('path, line').attr('stroke',axisColor); g.selectAll('text').attr('fill',tickColor).style('font-size','11px'); });
+        gAxes.append('g').attr('transform', `translate(0,${innerHeight})`).call(xAxis).call(g=>{ g.selectAll('path, line').attr('stroke',axisColor); g.selectAll('text').attr('fill',tickColor).style('font-size','12px'); });
+        gAxes.append('g').call(yAxis).call(g=>{ g.selectAll('path, line').attr('stroke',axisColor); g.selectAll('text').attr('fill',tickColor).style('font-size','12px'); });
 
         // Legend box (top-right)
         // Per-cell legend hidden; global legend is used
@@ -228,10 +228,23 @@
         // Hover
         gHover.selectAll('*').remove();
         const overlay = gHover.append('rect').attr('fill','transparent').style('cursor','crosshair').attr('x',0).attr('y',0).attr('width', innerWidth).attr('height', innerHeight);
-        const hoverLine = gHover.append('line').attr('stroke','rgba(0,0,0,0.25)').attr('stroke-width',1).attr('y1',0).attr('y2',innerHeight).style('display','none');
+        const axisColor = document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)';
+        const hoverLine = gHover.append('line').attr('stroke',axisColor).attr('stroke-width',1).attr('y1',0).attr('y2',innerHeight).style('display','none');
         const stepSet = new Set(); series.forEach(s=>s.values.forEach(v=>stepSet.add(v.step))); const steps = Array.from(stepSet).sort((a,b)=>a-b);
         function onMove(ev){ const [mx,my]=d3.pointer(ev, overlay.node()); const nearest = steps.reduce((best,s)=> Math.abs(s - xScale.invert(mx)) < Math.abs(best - xScale.invert(mx)) ? s : best, steps[0]); const xpx = xScale(nearest); hoverLine.attr('x1',xpx).attr('x2',xpx).style('display',null);
-          let html = `<div><strong>${titleText}</strong></div><div><strong>step</strong> ${nearest}</div>`; series.forEach(s=>{ const m = new Map(s.values.map(v=>[v.step, v])); const pt = m.get(nearest); if (pt && pt.value!=null){ const fmt = (vv)=> (isRankStrictFlag? d3.format('d')(vv) : (+vv).toFixed(4)); const err = (pt.stderr!=null && isFinite(pt.stderr) && pt.stderr>0) ? ` ± ${fmt(pt.stderr)}` : ''; html+=`<div><span style=\"display:inline-block;width:10px;height:10px;background:${s.color};border-radius:50%;margin-right:6px;\"></span><strong>${s.run}</strong> ${fmt(pt.value)}${err}</div>`; }});
+          let html = `<div><strong>${titleText}</strong></div><div><strong>step</strong> ${nearest}</div>`;
+          const withPt = series.map(s=>{ const m=new Map(s.values.map(v=>[v.step,v])); const pt=m.get(nearest); return {s, pt}; }).filter(d=>d.pt && d.pt.value!=null);
+          withPt.sort((a,b)=> isRankStrictFlag ? (b.pt.value - a.pt.value) : (a.pt.value - b.pt.value));
+          const shapeSvg = (shape, color) => {
+            const size=9, half=size/2, cx=9, cy=7, sw='1';
+            if(shape==='circle') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><circle r="${half}" fill="${color}" stroke="${color}" stroke-width="${sw}"/></g></svg>`;
+            if(shape==='square') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><rect x="${-half}" y="${-half}" width="${size}" height="${size}" fill="${color}" stroke="${color}" stroke-width="${sw}"/></g></svg>`;
+            if(shape==='triangle') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><path d="M0,${-half*1.2} L${half*1.1},${half*0.6} L${-half*1.1},${half*0.6} Z" fill="${color}" stroke="${color}" stroke-width="${sw}"/></g></svg>`;
+            if(shape==='diamond') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><path d="M0,${-half*1.2} L${half*1.1},0 L0,${half*1.2} L${-half*1.1},0 Z" fill="${color}" stroke="${color}" stroke-width="${sw}"/></g></svg>`;
+            if(shape==='inverted-triangle') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><path d="M0,${half*1.2} L${half*1.1},${-half*0.6} L${-half*1.1},${-half*0.6} Z" fill="${color}" stroke="${color}" stroke-width="${sw}"/></g></svg>`;
+            return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><circle r="${half}" fill="${color}" stroke="${color}" stroke-width="${sw}"/></g></svg>`;
+          };
+          withPt.forEach(({s,pt})=>{ const fmt=(vv)=> (isRankStrictFlag? d3.format('d')(vv) : (+vv).toFixed(4)); const err=(pt.stderr!=null && isFinite(pt.stderr) && pt.stderr>0)? ` ± ${fmt(pt.stderr)}` : ''; html+=`<div style="display:flex;align-items:center;gap:6px;white-space:nowrap;">${shapeSvg(s.marker, s.color)}<strong>${s.run}</strong> ${fmt(pt.value)}${err}</div>`; });
           tipInner.innerHTML = html; const offsetX=12, offsetY=12; tip.style.opacity='1'; tip.style.transform=`translate(${Math.round(mx+offsetX+margin.left)}px, ${Math.round(my+offsetY+margin.top)}px)`; }
         function onLeave(){ tip.style.opacity='0'; tip.style.transform='translate(-9999px, -9999px)'; hoverLine.style('display','none'); }
         overlay.on('mousemove', onMove).on('mouseleave', onLeave);
@@ -328,18 +341,19 @@
             if (r.ok && window.d3 && window.d3.csvParse) {
               const txt = await r.text();
               const rows = window.d3.csvParse(txt);
-              const runList = Array.from(new Set(rows.map(row => String(row.run||'').trim()).filter(Boolean)));
+              let runList = Array.from(new Set(rows.map(row => String(row.run||'').trim()).filter(Boolean)));
+              if (runList.includes('FineVision')) { runList = ['FineVision', ...runList.filter(r => r !== 'FineVision')]; }
               const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#E889AB';
               const pool = [primary, '#4EA5B7', '#E38A42', '#CEC0FA', ...((window.d3 && window.d3.schemeTableau10) ? window.d3.schemeTableau10 : ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ab'])];
               const markerShapes = ['circle', 'square', 'triangle', 'diamond', 'inverted-triangle'];
               const shapeSVG = (shape, color) => {
-                const size = 12; const s = size/2; const stroke = color;
-                if (shape === 'circle') return `<svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><circle r="5" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
-                if (shape === 'square') return `<svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><rect x="-5" y="-5" width="10" height="10" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
-                if (shape === 'triangle') return `<svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><path d="M0,-6 L5,3 L-5,3 Z" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
-                if (shape === 'diamond') return `<svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><path d="M0,-6 L6,0 L0,6 L-6,0 Z" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
-                if (shape === 'inverted-triangle') return `<svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><path d="M0,6 L5,-3 L-5,-3 Z" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
-                return `<svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><circle r="5" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
+                const size = 9; const s = size/2; const stroke = color;
+                if (shape === 'circle') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(9,7)"><circle r="${s}" fill="${color}" stroke="${stroke}" stroke-width="1" /></g></svg>`;
+                if (shape === 'square') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(9,7)"><rect x="${-s}" y="${-s}" width="${size}" height="${size}" fill="${color}" stroke="${stroke}" stroke-width="1" /></g></svg>`;
+                if (shape === 'triangle') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(9,7)"><path d="M0,${-s*1.2} L${s*1.1},${s*0.6} L${-s*1.1},${s*0.6} Z" fill="${color}" stroke="${stroke}" stroke-width="1" /></g></svg>`;
+                if (shape === 'diamond') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(9,7)"><path d="M0,${-s*1.2} L${s*1.1},0 L0,${s*1.2} L${-s*1.1},0 Z" fill="${color}" stroke="${stroke}" stroke-width="1" /></g></svg>`;
+                if (shape === 'inverted-triangle') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(9,7)"><path d="M0,${s*1.2} L${s*1.1},${-s*0.6} L${-s*1.1},${-s*0.6} Z" fill="${color}" stroke="${stroke}" stroke-width="1" /></g></svg>`;
+                return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(9,7)"><circle r="${s}" fill="${color}" stroke="${stroke}" stroke-width="1" /></g></svg>`;
               };
               legendHost.innerHTML = runList.map((name, i)=> {
                 const color = pool[i % pool.length];
