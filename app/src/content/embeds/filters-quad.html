@@ -202,6 +202,18 @@
         // Axes
         gAxes.selectAll('*').remove();
         let xAxis = d3.axisBottom(xScale).tickSizeOuter(0); xAxis = xAxis.ticks(8);
+        // Mobile tick formatter: 2k/2.5k instead of 2,000
+        const isMobileTicks = width < 640;
+        const tfMobile = (d) => {
+          const abs = Math.abs(d);
+          if (abs >= 1000) {
+            const v = d / 1000;
+            const out = Math.abs(v) >= 10 ? Math.round(v) : +v.toFixed(1);
+            return out + 'k';
+          }
+          return d3.format('d')(d);
+        };
+        if (isMobileTicks) xAxis = xAxis.tickFormat(tfMobile);
         const yAxis = d3.axisLeft(yScale).tickValues(yTicks).tickSizeOuter(0).tickFormat(isRankStrictFlag ? d3.format('d') : d3.format('.2f'));
         gAxes.append('g').attr('transform', `translate(0,${innerHeight})`).call(xAxis).call(g=>{ g.selectAll('path, line').attr('stroke',axisColor); g.selectAll('text').attr('fill',tickColor).style('font-size','11px'); });
         gAxes.append('g').call(yAxis).call(g=>{ g.selectAll('path, line').attr('stroke',axisColor); g.selectAll('text').attr('fill',tickColor).style('font-size','11px'); });
@@ -452,6 +464,36 @@
             }
           } catch {}
         }
+
+        // Mobile layout: legend above controls and full-width stacks
+        function adjustGlobalLayout(){
+          try {
+            const rect = host.getBoundingClientRect();
+            const isMobile = rect && rect.width < 640;
+            const ctrl = host.querySelector('.filters-quad__controls');
+            const legend = host.querySelector('.filters-quad__legend');
+            if (!ctrl || !legend) return;
+            if (isMobile) {
+              if (legend.nextElementSibling !== ctrl) {
+                host.insertBefore(legend, ctrl);
+              }
+              ctrl.style.justifyContent = 'flex-start';
+              legend.style.justifyContent = 'flex-start';
+              ctrl.style.width = '100%';
+              legend.style.width = '100%';
+            } else {
+              if (ctrl.nextElementSibling !== legend) {
+                host.insertBefore(ctrl, legend);
+              }
+              ctrl.style.justifyContent = '';
+              legend.style.justifyContent = '';
+              ctrl.style.width = '';
+              legend.style.width = '';
+            }
+          } catch {}
+        }
+        adjustGlobalLayout();
+        if (window.ResizeObserver) { const ro = new ResizeObserver(()=>adjustGlobalLayout()); ro.observe(host); }
       })();
     };
 

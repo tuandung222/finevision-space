@@ -328,6 +328,20 @@
           }
         } catch {}
 
+        // Mobile layout: stack legend above select, allow legend to take full width
+        try {
+          const isMobile = width < 640;
+          if (controls && controls.style && labelMetric && labelMetric.style) {
+            controls.style.flexDirection = isMobile ? 'column' : 'row';
+            controls.style.alignItems = isMobile ? 'flex-start' : 'center';
+            labelMetric.style.marginLeft = isMobile ? '0' : 'auto';
+            if (legendInline && legendInline.style) {
+              legendInline.style.width = isMobile ? '100%' : '';
+              legendInline.style.justifyContent = isMobile ? 'flex-start' : '';
+            }
+          }
+        } catch {}
+
         xScale.range([0, innerWidth]);
         yScale.range([innerHeight, 0]);
 
@@ -365,6 +379,16 @@
         // Axes
         gAxes.selectAll('*').remove();
         let xAxis = d3.axisBottom(xScale).tickSizeOuter(0);
+        const isMobileTicks = width < 640;
+        const tfMobile = (d) => {
+          const abs = Math.abs(d);
+          if (abs >= 1000) {
+            const v = d / 1000;
+            const out = Math.abs(v) >= 10 ? Math.round(v) : +v.toFixed(1);
+            return out + 'k';
+          }
+          return d3.format('d')(d);
+        };
         if (isRankStrictFlag) {
           const [dx0, dx1] = xScale.domain();
           const start = Math.ceil(dx0 / 1000) * 1000;
@@ -372,9 +396,10 @@
           const xTicks = [];
           for (let v = start; v <= end; v += 1000) xTicks.push(v);
           if (xTicks.length === 0) xTicks.push(Math.round(dx0));
-          xAxis = xAxis.tickValues(xTicks).tickFormat(d3.format('d'));
+          xAxis = xAxis.tickValues(xTicks).tickFormat(isMobileTicks ? tfMobile : d3.format('d'));
         } else {
           xAxis = xAxis.ticks(8);
+          if (isMobileTicks) xAxis = xAxis.tickFormat(tfMobile);
         }
         const yAxis = d3.axisLeft(yScale)
           .tickValues(yTicks)
