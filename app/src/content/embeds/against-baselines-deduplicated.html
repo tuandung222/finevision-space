@@ -171,6 +171,10 @@
 
       // Add marker definitions for different shapes
       const defs = svg.append('defs');
+      // Clip-path to constrain drawing to chart area
+      const clipId = `clip-${Math.random().toString(36).slice(2)}`;
+      const clipPath = defs.append('clipPath').attr('id', clipId);
+      const clipRect = clipPath.append('rect').attr('x', 0).attr('y', 0).attr('width', 0).attr('height', 0);
       
       // Academic marker shapes
       const markerShapes = ['circle', 'square', 'triangle', 'diamond', 'inverted-triangle'];
@@ -183,6 +187,10 @@
       const gAreas = gRoot.append('g').attr('class', 'areas');
       const gLines = gRoot.append('g').attr('class', 'lines');
       const gPoints = gRoot.append('g').attr('class', 'points');
+      // Apply clipping to plotted elements (areas, lines, points)
+      gAreas.attr('clip-path', `url(#${clipId})`);
+      gLines.attr('clip-path', `url(#${clipId})`);
+      gPoints.attr('clip-path', `url(#${clipId})`);
       const gHover = gRoot.append('g').attr('class', 'hover');
       const gLegend = gRoot.append('foreignObject').attr('class', 'legend');
 
@@ -309,6 +317,9 @@
         const innerWidth = width - margin.left - margin.right;
         const innerHeight = height - margin.top - margin.bottom;
         gRoot.attr('transform', `translate(${margin.left},${margin.top})`);
+
+        // Update clip rect to match inner plotting area
+        clipRect.attr('width', innerWidth).attr('height', innerHeight);
 
         xScale.range([0, innerWidth]);
         yScale.range([innerHeight, 0]);
