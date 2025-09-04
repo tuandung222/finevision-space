@@ -102,6 +102,21 @@
           tip.style.display = 'block';
         }
       };
+      const installMobileDismissHandler = () => {
+        if (!window.__bannerMobileDismissInstalled) {
+          window.__bannerMobileDismissInstalled = true;
+          document.addEventListener('click', (ev) => {
+            if (!isMobileLayout()) return;
+            const target = ev.target;
+            const isCircle = target && target.tagName && target.tagName.toLowerCase && target.tagName.toLowerCase() === 'circle' && container.contains(target);
+            const inTooltip = tip && tip.contains(target);
+            if (tipVisible && !isCircle && !inTooltip) {
+              tipVisible = false;
+              applyTooltipLayout();
+            }
+          }, { passive: true });
+        }
+      };
       const applyContainerLayout = () => {
         if (!container || !container.style) return;
         container.style.flexDirection = isMobileLayout() ? 'column' : 'row';
@@ -380,6 +395,7 @@
           // Ensure tooltip layout reflects current viewport
           applyTooltipLayout();
           applyContainerLayout();
+          installMobileDismissHandler();
         };
 
         if (window.ResizeObserver) {
@@ -405,6 +421,7 @@
         render();
         applyTooltipLayout();
         applyContainerLayout();
+        installMobileDismissHandler();
       });
     };
 
