@@ -2,6 +2,10 @@
 
 html { font-size: 16px; line-height: 1.6; }
 
+svg {
+  overflow: visible;
+}
+
 .content-grid main { color: var(--text-color); }
 .content-grid main p { margin: 0 0 var(--spacing-3); }
 
