@@ -107,6 +107,8 @@
       const xScale = d3.scaleLinear(); const yScale = d3.scaleLinear();
       const lineGen = d3.line().x(d => xScale(d.step)).y(d => yScale(d.value));
       let isRankStrictFlag = false; let rankTickMax = 1;
+      // Optional shared Y domain override (set from outside to sync the 4 charts)
+      let yDomainOverride = null; // { metricKey, domain:[min,max] | [max,1] for rank, isRankStrict, rankTickMax }
       
       // Colors and markers (match original embeds)
       const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#E889AB';
@@ -183,7 +185,14 @@
         runs.forEach(r => { (map[r]||[]).forEach(pt => { const v = isRankStrict ? Math.round(pt.value) : pt.value; minStep=Math.min(minStep,pt.step); maxStep=Math.max(maxStep,pt.step); maxVal=Math.max(maxVal,v); minVal=Math.min(minVal,v); }); });
         if (!isFinite(minStep) || !isFinite(maxStep)) return;
         xScale.domain([minStep, maxStep]); if (isRank) { rankTickMax = Math.max(1, Math.round(maxVal)); yScale.domain([rankTickMax, 1]); } else { yScale.domain([minVal, maxVal]).nice(); }
-        isRankStrictFlag = isRankStrict;
+        // Apply shared Y domain override if provided for this metric
+        if (yDomainOverride && yDomainOverride.metricKey === metricKey && Array.isArray(yDomainOverride.domain)) {
+          isRankStrictFlag = !!yDomainOverride.isRankStrict;
+          rankTickMax = yDomainOverride.rankTickMax != null ? yDomainOverride.rankTickMax : rankTickMax;
+          yScale.domain(yDomainOverride.domain);
+        } else {
+          isRankStrictFlag = isRankStrict;
+        }
 
         const { innerWidth, innerHeight } = updateScales();
 
@@ -284,7 +293,21 @@
       return {
         ready,
         getMetrics: () => metricList.slice(),
-        setMetric: (m) => { if (m) renderMetric(m); }
+        setMetric: (m) => { if (m) renderMetric(m); },
+        // Expose extent for a given metric so the host can compute a shared Y domain
+        getExtent: (metricKey) => {
+          const map = dataByMetric.get(metricKey) || {};
+          const runs = runOrder;
+          let maxVal = -Infinity, minVal = Infinity;
+          const isRank = /rank/i.test(metricKey); const isAverage = /average/i.test(metricKey); const isRankStrict = isRank && !isAverage;
+          runs.forEach(r => { (map[r]||[]).forEach(pt => { const v = isRankStrict ? Math.round(pt.value) : pt.value; if (isFinite(v)) { maxVal=Math.max(maxVal,v); minVal=Math.min(minVal,v); } }); });
+          if (!isFinite(minVal) || !isFinite(maxVal)) return null;
+          return { min: minVal, max: maxVal, isRankStrict };
+        },
+        // Allow host to set a shared Y domain override (persisted across resizes)
+        setYDomainOverride: (metricKey, domain, isRankStrict, sharedRankTickMax) => {
+          yDomainOverride = { metricKey, domain, isRankStrict: !!isRankStrict, rankTickMax: sharedRankTickMax };
+        }
       };
     }
 
@@ -328,7 +351,26 @@
         if (def) select.value = def;
         label.appendChild(select); ctrl.appendChild(label);
 
-        const applyAll = (v) => instances.forEach(i => i && typeof i.setMetric === 'function' && i.setMetric(v));
+        const applyAll = (v) => {
+          // Compute shared Y domain across all instances for selected metric
+          const isRank = /rank/i.test(v); const isAverage = /average/i.test(v); const isRankStrict = isRank && !isAverage;
+          const extents = instances.map(i => (i && typeof i.getExtent === 'function') ? i.getExtent(v) : null).filter(Boolean);
+          if (!extents.length) { instances.forEach(i => i && typeof i.setMetric === 'function' && i.setMetric(v)); return; }
+          let globalMin = Math.min(...extents.map(e => e.min));
+          let globalMax = Math.max(...extents.map(e => e.max));
+          let domain, rankTickMax;
+          if (isRankStrict) {
+            rankTickMax = Math.max(1, Math.round(globalMax));
+            domain = [rankTickMax, 1];
+          } else {
+            domain = [globalMin, globalMax];
+          }
+          // Apply override then render
+          instances.forEach(i => {
+            if (i && typeof i.setYDomainOverride === 'function') i.setYDomainOverride(v, domain, isRankStrict, rankTickMax);
+            if (i && typeof i.setMetric === 'function') i.setMetric(v);
+          });
+        };
         if (def) applyAll(def);
         select.addEventListener('change', () => applyAll(select.value));
 
