@@ -49,7 +49,7 @@ import Accordion from '../components/Accordion.astro'
 <br/>
 
 <div style="text-align:justify!important;">
-  Today, we release **FineVision**, a new multimodal dataset with **24 million samples**. We created FineVision by collecting over 200 datasets containing 17M images, 89M question-answer turns, and 10B answer tokens, totaling **5TB of high-quality data**. Additionally, we extensively processed all datasets to unify their format, clean them of duplicates and poor data, and rated all turns using 32B VLMs across 4 qualitative metrics with a score from 1-5 to enable the construction and study of individual training mixtures.
+  Today, we release **FineVision**, a new multimodal dataset with **24 million samples**. We created FineVision by collecting over **200 datasets** containing **17M images**, **89M question-answer turns**, and **10B answer tokens**, totaling **5TB of high-quality data**. Additionally, we extensively processed all datasets to unify their format, clean them of duplicates and poor data, and rated all turns using 32B VLMs across 4 qualitative metrics with a score from 1-5 to enable the construction and study of individual training mixtures.
   
   To enable everyone to construct state-of-the-art open Vision-Language Models (VLMs), we ran extensive ablations on FineVision, and compared it to publicly available alternatives. Models trained on FineVision lead in performance over 11 common benchmarks compared against every baseline, thanks to FineVision’s scale and diversity of data.
 </div>
@@ -58,25 +58,25 @@ To use the dataset, simply load it with:
 
 <small class="muted">python</small>
 ```python
-from datasets import load_dataset
+from datasets import load_dataset, get_dataset_config_names
 
 # Get all subset names and load the first one
 available_subsets = get_dataset_config_names('HuggingFaceM4/FineVision')
-ds = load_dataset('HuggingFaceM4/FineVision', name=availible_subsets[0], split='train', streaming=True)
+ds = load_dataset('HuggingFaceM4/FineVision', name=available_subsets[0], split='train', streaming=True)
 
 # Inspect the first sample
 ds[0]
 ```
 
 ## Why this dataset?
-Even though open-weights Vision-Language Models are becoming ever more powerful, the accessibility of the training data used for these models is lagging behind. This data is often proprietary and inaccessible for the broader community. Projects like The Cauldron, LLaVa and Cambrian aim to provide such datasets, but get quickly outpaced by the speed of the field and the emergence of novel applications for VLMs, like agentic tasks.
+Even though open-weight Vision-Language Models are becoming ever more powerful, the accessibility of the training data used for these models is lagging behind. This data is often proprietary and inaccessible to the broader community. Projects like The Cauldron, LLaVa, and Cambrian aim to provide such datasets, but get quickly outpaced by the speed of the field and the emergence of novel applications for VLMs, like agentic tasks.
 For FineVision we set out to combine and unify existing available data sources to create a large and high-quality dataset. As a first step we need to collect and standardize the datasets.
 
 ## How did we build FineVision?
 FineVision was a giant act of data curation. We started by collecting publicly available datasets, and augmenting underrepresented categories. We then evaluated all datasets for duplicated data internally and benchmark contamination. This data is then cleaned and rated, before being added to the final mixture.
 
 ### Data Collection
-We manually collected over **200 image-text datasets** from various publicly available sources and processed them to unify their formatting. On top of that, some datasets are not presented in chat form, so we converted them into question-answer pairs. In some cases, this goes as far as synthetically creating questions for all samples. Finally, we adressed underrepresented domains, such as GUI-oriented data. To fill this gap, we create and add a new dataset which was compiled from existing GUI datasets, after applying chat normalization and unifying the action space to convert their specific formats into a more general GUI action space.
+We manually collected over **200 image-text datasets** from various publicly available sources and processed them to unify their formatting. On top of that, some datasets are not presented in chat form, so we converted them into question-answer pairs. In some cases, this goes as far as synthetically creating questions for all samples. Finally, we adressed underrepresented domains, such as GUI-oriented data. To fill this gap, we create and add a new dataset that was compiled from existing GUI datasets, after applying chat normalization and unifying the action space to convert their specific formats into a more general GUI action space.
 
 ---
 <Wide>
@@ -302,7 +302,7 @@ After collecting and processing the data, we run multiple experiments and ablati
 ---
 <br/>
 <Wide>
-  <HtmlEmbed src="d3-pie.html" id="pie" desc="Figure 1: Distribution of Categories in FineVision by Answer Tokens, Number of Samples, Turns, and Images. While the distributions differ a bit with the different metrics, FineVision provides a good baseline mixture especially when judging by the number of images in the individual categories. Samples from Chart & Table usually lend themselves well to multi turn conversations, since multiple similar questions can be asked for a single Chart. Samples from OCR QA often have a lot of answer tokens, since they aim at detailed document understanding, which are rarely answered with a short sentence." align="center" />
+  <HtmlEmbed src="d3-pie.html" id="pie" desc="Figure 1: Distribution of Categories in FineVision by Answer Tokens, Number of Samples, Turns, and Images. While the distributions differ a bit with the different metrics, FineVision provides a good baseline mixture, especially when judging by the number of images in the individual categories. Samples from Chart & Table usually lend themselves well to multi-turn conversations, since multiple similar questions can be asked for a single Chart. Samples from OCR QA often have a lot of answer tokens, since they aim at detailed document understanding, which are rarely answered with a short sentence." align="center" />
 </Wide>
 ---
 
@@ -310,10 +310,10 @@ After collecting and processing the data, we run multiple experiments and ablati
 To ensure a fair comparison between different configurations, we use the same setup and evaluations for all of our ablations. This enables us to compare FineVision to other publicly available datasets as well as experiment with different intra-dataset configurations.
 
 ### Model Architecture: [nanoVLM](https://github.com/huggingface/nanoVLM)
-For all ablations and experiments, we train a 460M parameter VLM, since it provides a good trade-off between training time and model performance. We utilize the lightweight nanoVLM training framework with [SmolLM2-360M-Instruct](https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct) as the text backbone, and [SigLIP2-Base-512](https://huggingface.co/google/siglip-base-patch16-512) as the vision encoder. We experimented with a classic 2-stage training schedule where the first stage is used to train mainly the Modality Projection to align the Language and Image Embeddings, and the second stage is used to train the whole model. Interestingly, we did not observe any significant benefits from this additional first stage compared to training the whole model directly at our size and training duration, so we settled on a single stage training for most ablations.
+For all ablations and experiments, we train a 460M parameter VLM, since it provides a good trade-off between training time and model performance. We utilize the lightweight nanoVLM training framework with [SmolLM2-360M-Instruct](https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct) as the text backbone, and [SigLIP2-Base-512](https://huggingface.co/google/siglip-base-patch16-512) as the vision encoder. We experimented with a classic 2-stage training schedule where the first stage is used to train mainly the Modality Projection to align the Language and Image Embeddings, and the second stage is used to train the whole model. Interestingly, we did not observe any significant benefits from this additional first stage compared to training the whole model directly at our size and training duration, so we settled on a single-stage training for most ablations.
 
 ### Baseline Datasets
-We use 3 similar open source alternatives as baselines to compare our dataset to: **[The Cauldron](https://huggingface.co/datasets/HuggingFaceM4/the_cauldron)**, **[LLaVA-OneVision](https://huggingface.co/datasets/lmms-lab/LLaVA-OneVision-Data)** and **[Cambrian-7M](https://huggingface.co/datasets/nyu-visionx/Cambrian-10M)**.
+We use three similar open source alternatives as baselines to compare our dataset to: **[The Cauldron](https://huggingface.co/datasets/HuggingFaceM4/the_cauldron)**, **[LLaVA-OneVision](https://huggingface.co/datasets/lmms-lab/LLaVA-OneVision-Data)** and **[Cambrian-7M](https://huggingface.co/datasets/nyu-visionx/Cambrian-10M)**.
 
 | Name          | Images  | Samples	| Turns |	Answer Tokens  
 |---------------|---------|---------|-------|----------------|
@@ -323,16 +323,16 @@ We use 3 similar open source alternatives as baselines to compare our dataset to
 | FineVision		| 17.3M   | 24.3M	  | 88.9M | 9.5B	         |
 
 ### Evaluations
-We utilize [lmms-eval](https://github.com/EvolvingLMMs-Lab/lmms-eval) during training to evaluate our ablations in a reproducible manner. We evaluate on a diverse set of 11 benchmarks: AI2D, ChartQA, DocVQA, InfoVQA, MME, MMMU, MMStar, OCRBench, ScienceQA, TextVQA and Seedbench. Since these benchmarks cover different topics and produce results on different scales, e.g. AI2D returns the accuracy of the exact matches (0-1), but MME returns a continuous score (0-2800), aggregating them is not trivial. In our ablations the relative performance between the different configurations matters, so to provide a robuts summary metric we determine the rank of each model compared to the others in every benchmark at every training step and average it over all the benchmarks. This way we can judge where different configurations rank among each other over the course of training. To keep a sense of how big the absolute difference between models is, we also provide an average over all metrics and incorporate MME by normalizing it between 0 and 1.
+We utilize [lmms-eval](https://github.com/EvolvingLMMs-Lab/lmms-eval) during training to evaluate our ablations in a reproducible manner. We evaluate on a diverse set of 11 benchmarks: AI2D, ChartQA, DocVQA, InfoVQA, MME, MMMU, MMStar, OCRBench, ScienceQA, TextVQA and SEED-Bench. Since these benchmarks cover different topics and produce results on different scales, e.g. AI2D returns the accuracy of the exact matches (0-1), but MME returns a continuous score (0-2800), aggregating them is not trivial. In our ablations the relative performance between the different configurations matters, so to provide a robuts summary metric we determine the rank of each model compared to the others in every benchmark at every training step and average it over all the benchmarks. This way, we can judge where different configurations rank among each other over the course of training. To keep a sense of how big the absolute difference between models is, we also provide an average over all metrics and incorporate MME by normalizing it between 0 and 1.
 
 ### Training Configuration
-Each of our ablations trains said 460M model with a maximal image size of 1536x1536 pixel (without resizing smaller images) and a maximal input token length of 4096. This results in a maximum batch size of 2 for a single H100, which we adapt with 8 steps of gradient accumulation on each of the 32 GPUs for an effective batch size of 512. In all single stage configurations we train for 20k Steps on 32 H100s for approximately 20h while evaluating all 11 benchmarks every 1k Steps. If not specified otherwise, the “Baseline” in our intra dataset ablations refers to a training run on the full unfiltered and unchanged dataset. In this configuration, a full epoch of the unfiltered FineVision dataset takes 12k steps.
+Each of our ablations trains the 460M model with a maximal image size of 1536x1536 pixel (without resizing smaller images) and a maximal input token length of 4096. This results in a maximum batch size of 2 for a single H100, which we adapt with 8 steps of gradient accumulation on each of the 32 GPUs for an effective batch size of 512. In all single stage configurations we train for 20k Steps on 32 H100s for approximately 20h while evaluating all 11 benchmarks every 1k Steps. If not specified otherwise, the “Baseline” in our intra dataset ablations refers to a training run on the full unfiltered and unchanged dataset. In this configuration, a full epoch of the unfiltered FineVision dataset takes 12k steps.
 
 ## Experiments
-While there are a lot of interesting questions that could be investigated, we mainly focus on the aspects of the training that are influenced by the data. Before we dive into the internal details of FineVision, let’s have a look at our performance against the baselines.
+While many interesting questions could be investigated, we mainly focus on the aspects of the training that are influenced by the data. Before we dive into the internal details of FineVision, let’s have a look at our performance against the baselines.
 
 ### How does FineVision compare to other open datasets?
-Here we see the first interesting trend: VLMs still benefit from training on a larger, more diverse dataset than what was available until today. FineVision doesn't lead the race in the first few thousand training steps, after all, it does include new tasks such as pointing and agentic browsing, so it shouldn't be better at first. But after seeing enough varied data, FineVision clearly shows the best performance across a wide set of benchmarks, which can be seen in its average ranking <a href="#against-baselines">(Fig. 2)</a>. One epoch of FineVision in our setup takes 12k training steps, so we train for close to 2 epochs in these ablations. Looking at the average benchmark, we can see how the models saturate around different points: 18k steps for cambrian, 12k for LLaVa and 7k for the cauldron.
+Here we see the first interesting trend: VLMs still benefit from training on a larger, more diverse dataset than what was available until today. FineVision doesn't lead the race in the first few thousand training steps, after all, it does include new tasks such as pointing and agentic browsing, so it shouldn't be better at first. But after seeing enough varied data, FineVision clearly shows the best performance across a wide set of benchmarks, which can be seen in its average ranking <a href="#against-baselines">(Fig. 2)</a>. One epoch of FineVision in our setup takes 12k training steps, so we train for close to 2 epochs in these ablations. Looking at the average benchmark, we can see how the models saturate around different points: 18k steps for Cambrian, 12k for LLaVa and 7k for the Cauldron.
 In particular, over 11 different benchmarks, FineVision achieves an average improvement of 40.7% over the Cauldron, 12.1% over Cambrian, and 46.3% over LLaVa, which increases to 51.3%, 18.6% and 58.0% when comparing the deduplicated versions of the datasets. Additionally, FineVision includes data for tasks such as agentic browsing, and counting and pointing, which are not part of the other baselines.
 
 <HtmlEmbed id="against-baselines" src="against-baselines.html" desc="Figure 2: Average Rank of Models trained on different open source datasets. FineVision shows both the highest average rank as well as the highest average over benchmarks." />
