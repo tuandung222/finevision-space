@@ -127,6 +127,8 @@
       const xScale = d3.scaleLinear(); const yScale = d3.scaleLinear();
       const lineGen = d3.line().x(d => xScale(d.step)).y(d => yScale(d.value));
       let isRankStrictFlag = false; let rankTickMax = 1;
+      // Remember last render params to support resize re-render with shared domain
+      let lastMetricKey = null; let lastSharedDomain = null;
       
       // Colors and markers (match original embeds)
       const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#E889AB';
@@ -213,15 +215,24 @@
         return { innerWidth, innerHeight, tickColor };
       }
 
-      function renderMetric(metricKey){
+      function renderMetric(metricKey, sharedDomain){
         const map = dataByMetric.get(metricKey) || {};
         const runs = runOrder;
         let minStep = Infinity, maxStep = -Infinity, maxVal = 0, minVal = Infinity;
         const isRank = /rank/i.test(metricKey); const isAverage = /average/i.test(metricKey); const isRankStrict = isRank && !isAverage;
         runs.forEach(r => { (map[r]||[]).forEach(pt => { const v = isRankStrict ? Math.round(pt.value) : pt.value; minStep=Math.min(minStep,pt.step); maxStep=Math.max(maxStep,pt.step); maxVal=Math.max(maxVal,v); minVal=Math.min(minVal,v); }); });
         if (!isFinite(minStep) || !isFinite(maxStep)) return;
-        xScale.domain([minStep, maxStep]); if (isRank) { rankTickMax = Math.max(1, Math.round(maxVal)); yScale.domain([rankTickMax, 1]); } else { yScale.domain([minVal, maxVal]).nice(); }
+        xScale.domain([minStep, maxStep]);
+        if (isRank) {
+          const forcedMax = Array.isArray(sharedDomain) ? sharedDomain[1] : null;
+          rankTickMax = Math.max(1, Math.round(forcedMax != null ? forcedMax : maxVal));
+          yScale.domain([rankTickMax, 1]);
+        } else {
+          const dom = Array.isArray(sharedDomain) ? sharedDomain : [minVal, maxVal];
+          yScale.domain(dom).nice();
+        }
         isRankStrictFlag = isRankStrict;
+        lastMetricKey = metricKey; lastSharedDomain = Array.isArray(sharedDomain) ? sharedDomain.slice() : null;
 
         const { innerWidth, innerHeight } = updateScales();
 
@@ -317,8 +328,9 @@
           // Par défaut, privilégier average_rank, sinon premier dispo
           const preferred = metricList.find(m => /average_rank/i.test(m)) || metricList.find(m => m === 'ai2d_exact_match');
           const def = preferred || metricList[0];
+          // Initial render (will be overridden with shared domain by bootstrap)
           renderMetric(def);
-          const ro = window.ResizeObserver ? new ResizeObserver(()=>renderMetric(def)) : null; if (ro) ro.observe(cell);
+          const ro = window.ResizeObserver ? new ResizeObserver(()=>{ if (lastMetricKey) renderMetric(lastMetricKey, lastSharedDomain); }) : null; if (ro) ro.observe(cell);
           if (typeof readyResolve === 'function') readyResolve();
         } catch (e) {
           const pre = document.createElement('pre'); pre.textContent = 'CSV load error: ' + (e && e.message ? e.message : e);
@@ -331,7 +343,20 @@
       return {
         ready,
         getMetrics: () => metricList.slice(),
-        setMetric: (m) => { if (m) renderMetric(m); }
+        getExtent: (metricKey) => {
+          try {
+            const map = dataByMetric.get(metricKey) || {};
+            const isRank = /rank/i.test(metricKey); const isAverage = /average/i.test(metricKey); const isRankStrict = isRank && !isAverage;
+            let maxVal = -Infinity, minVal = Infinity;
+            Object.values(map).forEach(arr => (arr||[]).forEach(pt => {
+              const v = isRankStrict ? Math.round(pt.value) : pt.value;
+              if (isFinite(v)) { if (v > maxVal) maxVal = v; if (v < minVal) minVal = v; }
+            }));
+            if (!isFinite(minVal) || !isFinite(maxVal)) return null;
+            return { min: minVal, max: maxVal, isRankStrict };
+          } catch { return null; }
+        },
+        setMetric: (m, sharedDomain) => { if (m) renderMetric(m, sharedDomain); }
       };
     }
 
@@ -376,7 +401,24 @@
         if (def) select.value = def;
         label.appendChild(select); ctrl.appendChild(label);
 
-        const applyAll = (v) => instances.forEach(i => i && typeof i.setMetric === 'function' && i.setMetric(v));
+        let currentMetric = def;
+        const applyAll = (v) => {
+          currentMetric = v;
+          const extents = instances.map(i => (i && typeof i.getExtent === 'function') ? i.getExtent(v) : null).filter(Boolean);
+          let shared = null;
+          if (extents.length) {
+            const anyRank = extents.some(e => e && e.isRankStrict);
+            if (anyRank) {
+              const maxRank = Math.max.apply(null, extents.map(e => e.max));
+              shared = [1, maxRank];
+            } else {
+              const min = Math.min.apply(null, extents.map(e => e.min));
+              const max = Math.max.apply(null, extents.map(e => e.max));
+              shared = [min, max];
+            }
+          }
+          instances.forEach(i => i && typeof i.setMetric === 'function' && i.setMetric(v, shared));
+        };
         if (def) applyAll(def);
         select.addEventListener('change', () => applyAll(select.value));
 
