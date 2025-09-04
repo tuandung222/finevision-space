@@ -219,6 +219,11 @@ const { citationText, bibtex, licence, doi } = Astro.props as Props;
     margin-bottom: 1em;
   }
 
+  /* Évite le double affichage des numéros: masque le marqueur natif */
+  .references-block li::marker {
+    content: '';
+  }
+
   .references-block a {
     color: var(--text-color);
   }
