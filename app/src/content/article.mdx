@@ -43,25 +43,29 @@ import visualPoster from "./assets/images/visual-vocabulary-poster.png";
 
 import Accordion from '../components/Accordion.astro'
 
-<Sidenote>
+<p style="text-align: center;">
+<a style=" margin: 0 auto; font-weight: bold;" href="https://huggingface.co/datasets/HuggingFaceM4/FineVision"> huggingface.co/datasets/HuggingFaceM4/FineVision</a>
+</p>
+<br/>
+
+<div style="text-align:justify!important;">
   Today, we release **FineVision**, a new multimodal dataset with **24 million samples**. We created FineVision by collecting over 200 datasets containing 17M images, 89M question-answer turns, and 10B answer tokens, totaling **5TB of high-quality data**. Additionally, we extensively processed all datasets to unify their format, clean them of duplicates and poor data, and rated all turns using 32B VLMs across 4 qualitative metrics with a score from 1-5 to enable the construction and study of individual training mixtures.
   
   To enable everyone to construct state-of-the-art open Vision-Language Models (VLMs), we ran extensive ablations on FineVision, and compared it to publicly available alternatives. Models trained on FineVision lead in performance over 11 common benchmarks compared against every baseline, thanks to FineVision’s scale and diversity of data.
+</div>
 
-  To use the dataset, simply load it with:
+To use the dataset, simply load it with:
+<small class="muted">python</small>
+```python
+from datasets import load_dataset
 
-  <small class="muted">python</small>
-  ```python
-  from datasets import load_dataset
+# Get all subset names and load the first one
+available_subsets = get_dataset_config_names('HuggingFaceM4/FineVision')
+ds = load_dataset('HuggingFaceM4/FineVision', name=availible_subsets[0], split='train', streaming=True)
 
-  # Get all subset names and load the first one
-  available_subsets = get_dataset_config_names('HuggingFaceM4/FineVision')
-  ds = load_dataset('HuggingFaceM4/FineVision', name=availible_subsets[0], split='train', streaming=True)
-  
-  # Inspect the first sample
-  ds[0]
-  ```
-</Sidenote>
+# Inspect the first sample
+ds[0]
+```
 
 ## Why this dataset?
 Even though open-weights Vision-Language Models are becoming ever more powerful, the accessibility of the training data used for these models is lagging behind. This data is often proprietary and inaccessible for the broader community. Projects like The Cauldron, LLaVa and Cambrian aim to provide such datasets, but get quickly outpaced by the speed of the field and the emergence of novel applications for VLMs, like agentic tasks.
