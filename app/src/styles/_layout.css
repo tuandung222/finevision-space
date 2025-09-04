@@ -69,8 +69,8 @@
 }
 
 .wide {
-  /* Target up to ~1400px while staying within viewport minus page gutters */
-  width: min(1400px, 100vw - 32px);
+  /* Target up to ~1400px while staying within viewport minus consistent padding */
+  width: min(1400px, calc(100vw - 2 * var(--content-padding-x)));
   margin-left: 50%;
   transform: translateX(-50%);
 }
