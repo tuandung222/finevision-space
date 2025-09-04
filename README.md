@@ -7,5 +7,5 @@ sdk: docker
 pinned: false
 header: mini
 app_port: 8080
-thumbnail: https://huggingface.co/spaces/tfrere/research-paper-template/thumb.jpg
+thumbnail: https://huggingface.co/spaces/HuggingFaceM4/FineVision/thumb.png
 ---
