@@ -320,12 +320,13 @@
         xScale.range([0, innerWidth]);
         yScale.range([innerHeight, 0]);
 
-        // Update clip rect to match inner plotting area (coords of gRoot after translate)
+        // Update clip rect with padding so edge markers are not clipped
+        const clipPad = Math.max(6, Math.ceil(markerSize * 2));
         clipRect
-          .attr('x', 0)
-          .attr('y', 0)
-          .attr('width', innerWidth)
-          .attr('height', innerHeight);
+          .attr('x', -clipPad)
+          .attr('y', -clipPad)
+          .attr('width', innerWidth + clipPad * 2)
+          .attr('height', innerHeight + clipPad * 2);
 
         // Compute Y ticks
         let yTicks = [];
