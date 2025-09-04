@@ -1,5 +1,6 @@
 ---
 title: 'FineVision: Open Data is all you need'
+short_description: 'A open dataset for data-centric training of Vision Language Models'
 emoji: 📝
 colorFrom: blue
 colorTo: indigo
