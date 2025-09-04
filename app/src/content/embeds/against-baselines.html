@@ -317,6 +317,17 @@
         const innerHeight = height - margin.top - margin.bottom;
         gRoot.attr('transform', `translate(${margin.left},${margin.top})`);
 
+        // Responsive legend layout like against-baselines-deduplicated
+        try {
+          const shouldWrapLegend = width < 1300;
+          if (legendInline && legendInline.style) {
+            legendInline.style.flexWrap = shouldWrapLegend ? 'wrap' : 'nowrap';
+            legendInline.style.rowGap = shouldWrapLegend ? '4px' : '';
+            legendInline.style.maxWidth = shouldWrapLegend ? Math.max(280, Math.round(width * 0.62)) + 'px' : 'unset';
+            legendInline.style.alignItems = shouldWrapLegend ? 'flex-start' : 'center';
+          }
+        } catch {}
+
         xScale.range([0, innerWidth]);
         yScale.range([innerHeight, 0]);
 
