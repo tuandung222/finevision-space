@@ -114,16 +114,16 @@
 
       // CSV: prefer public path, fallback to relative
       const CSV_PATHS = [
-        '/data/ss_vs_s1.csv',
-        './assets/data/ss_vs_s1.csv',
-        '../assets/data/ss_vs_s1.csv',
-        '../../assets/data/ss_vs_s1.csv'
+        '/data/ss_vs_s1_fullres.csv',
+        './assets/data/ss_vs_s1_fullres.csv',
+        '../assets/data/ss_vs_s1_fullres.csv',
+        '../../assets/data/ss_vs_s1_fullres.csv'
       ];
       const fetchFirstAvailable = async (paths) => {
         for (const p of paths) {
           try { const r = await fetch(p, { cache: 'no-cache' }); if (r.ok) return await r.text(); } catch(e) {}
         }
-        throw new Error('CSV not found: ss_vs_s1.csv');
+        throw new Error('CSV not found: ss_vs_s1_fullres.csv');
       };
 
       // Controls UI
