@@ -166,20 +166,26 @@
         .attr('width', '100%')
         .style('display', 'block');
 
-      // Add marker definitions for different shapes
+      // Add marker definitions and clipPath for chart area
       const defs = svg.append('defs');
+      const clipId = `clip-${Math.random().toString(36).slice(2)}`;
+      const clipPath = defs.append('clipPath').attr('id', clipId)
+        .attr('clipPathUnits', 'userSpaceOnUse');
+      const clipRect = clipPath.append('rect').attr('x', 0).attr('y', 0).attr('width', 0).attr('height', 0);
       
       // Academic marker shapes
       const markerShapes = ['circle', 'square', 'triangle', 'diamond', 'inverted-triangle'];
-      const markerSize = 8;
+      const markerSize = 5;
 
       // Groups
       const gRoot = svg.append('g');
       const gGrid = gRoot.append('g').attr('class', 'grid');
       const gAxes = gRoot.append('g').attr('class', 'axes');
-      const gAreas = gRoot.append('g').attr('class', 'areas');
-      const gLines = gRoot.append('g').attr('class', 'lines');
-      const gPoints = gRoot.append('g').attr('class', 'points');
+      // Dedicated plotting layer that will be clipped
+      const gPlot = gRoot.append('g').attr('class', 'plot');
+      const gAreas = gPlot.append('g').attr('class', 'areas');
+      const gLines = gPlot.append('g').attr('class', 'lines');
+      const gPoints = gPlot.append('g').attr('class', 'points');
       const gHover = gRoot.append('g').attr('class', 'hover');
       const gLegend = gRoot.append('foreignObject').attr('class', 'legend');
 
@@ -242,8 +248,8 @@
       // Scales and layout
       let width = 800, height = 360;
       let margin = { top: 16, right: 28, bottom: 56, left: 64 };
-      let xScale = d3.scaleLinear();
-      let yScale = d3.scaleLinear();
+      let xScale = d3.scaleLinear().clamp(true);
+      let yScale = d3.scaleLinear().clamp(true);
 
       // Line generators - simple linear connections
       const lineGen = d3.line()
@@ -309,6 +315,13 @@
 
         xScale.range([0, innerWidth]);
         yScale.range([innerHeight, 0]);
+
+        // Update clip rect to match inner plotting area (coords local to gRoot)
+        clipRect
+          .attr('x', 0)
+          .attr('y', 0)
+          .attr('width', innerWidth)
+          .attr('height', innerHeight);
 
         // Compute Y ticks
         let yTicks = [];
@@ -428,8 +441,8 @@
         if (!isFinite(minStep) || !isFinite(maxStep)) { return; }
         xScale.domain([minStep, maxStep]);
         if (isRank) {
-          rankTickMax = Math.max(1, Math.round(maxVal));
-          yScale.domain([rankTickMax, 1]);
+          rankTickMax = isRankStrict ? Math.max(1, Math.round(maxVal)) : Math.max(1, maxVal);
+          yScale.domain([rankTickMax, 1]).nice();
         } else {
           yScale.domain([minVal, maxVal]).nice();
         }

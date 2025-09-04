@@ -89,22 +89,17 @@ const wrapperClass = ["accordion", className].filter(Boolean).join(" ");
   }
 
   .accordion__summary {
+    margin: 0;
     list-style: none;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     gap: 4px;
-    padding: 4px;
+    padding: var(--spacing-2) var(--spacing-3);
     cursor: pointer;
     color: var(--text-color);
     user-select: none;
-    position: relative;
   }
-
-  .accordion[size="big"] .accordion__summary {
-    padding: 16px;
-  }
-
 
   /* Remove conditional padding to avoid jump on close */
 
@@ -116,13 +111,16 @@ const wrapperClass = ["accordion", className].filter(Boolean).join(" ");
     content: "";
   }
 
+  .accordion[size="big"] .accordion__summary {
+    padding: 16px;
+  }
+
   .accordion__title {
     font-weight: 600;
   }
 
   .accordion__chevron {
-    position: absolute;
-    right: 8px;
+    flex: 0 0 auto;
     transition: transform 220ms ease;
     opacity: .85;
   }
@@ -165,7 +163,6 @@ const wrapperClass = ["accordion", className].filter(Boolean).join(" ");
     padding: 0;
   }
 
-
   /* Separator between header and content when open (edge-to-edge) */
   .accordion[open] .accordion__content-wrapper::before {
     content: "";
@@ -184,7 +181,6 @@ const wrapperClass = ["accordion", className].filter(Boolean).join(" ");
     outline-offset: 3px;
     border-radius: 8px;
   }
-  
 
 
 </style>

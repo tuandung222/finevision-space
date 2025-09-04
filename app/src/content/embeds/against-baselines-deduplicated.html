@@ -1,6 +1,6 @@
-<div class="d3-line" style="width:100%;margin:10px 0;"></div>
+<div class="d3-line d3-embed--against-baselines-dd" style="width:100%;margin:10px 0;"></div>
 <style>
-  .d3-line .d3-line__controls select {
+  .d3-embed--against-baselines-dd .d3-line__controls select {
     font-size: 12px;
     padding: 8px 28px 8px 10px;
     border: 1px solid var(--border-color);
@@ -17,21 +17,21 @@
     cursor: pointer;
     transition: border-color .15s ease, box-shadow .15s ease;
   }
-  [data-theme="dark"] .d3-line .d3-line__controls select {
+  [data-theme="dark"] .d3-embed--against-baselines-dd .d3-line__controls select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   }
-  .d3-line .d3-line__controls select:hover {
+  .d3-embed--against-baselines-dd .d3-line__controls select:hover {
     border-color: var(--primary-color);
   }
-  .d3-line .d3-line__controls select:focus {
+  .d3-embed--against-baselines-dd .d3-line__controls select:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(232,137,171,.25);
     outline: none;
   }
-  .d3-line .d3-line__controls label { gap: 8px; }
+  .d3-embed--against-baselines-dd .d3-line__controls label { gap: 8px; }
 
   /* Range slider themed with --primary-color */
-  .d3-line .d3-line__controls input[type="range"] { 
+  .d3-embed--against-baselines-dd .d3-line__controls input[type="range"] { 
     -webkit-appearance: none; 
     appearance: none; 
     width: 100%; 
@@ -40,12 +40,12 @@
     background: var(--border-color);
     outline: none;
   }
-  .d3-line .d3-line__controls input[type="range"]::-webkit-slider-runnable-track {
+  .d3-embed--against-baselines-dd .d3-line__controls input[type="range"]::-webkit-slider-runnable-track {
     height: 6px; 
     background: transparent; 
     border-radius: 999px;
   }
-  .d3-line .d3-line__controls input[type="range"]::-webkit-slider-thumb {
+  .d3-embed--against-baselines-dd .d3-line__controls input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none; 
     appearance: none; 
     width: 16px; 
@@ -56,12 +56,12 @@
     margin-top: -5px; 
     cursor: pointer;
   }
-  .d3-line .d3-line__controls input[type="range"]::-moz-range-track {
+  .d3-embed--against-baselines-dd .d3-line__controls input[type="range"]::-moz-range-track {
     height: 6px; 
     background: transparent; 
     border-radius: 999px;
   }
-  .d3-line .d3-line__controls input[type="range"]::-moz-range-thumb {
+  .d3-embed--against-baselines-dd .d3-line__controls input[type="range"]::-moz-range-thumb {
     width: 16px; 
     height: 16px; 
     border-radius: 50%; 
@@ -70,7 +70,7 @@
     cursor: pointer;
   }
   /* Improved line color via CSS */
-  .d3-line .lines path.improved { stroke: var(--primary-color); }
+  .d3-embed--against-baselines-dd .lines path.improved { stroke: var(--primary-color); }
 </style>
 <script>
   (() => {
@@ -173,24 +173,25 @@
       const defs = svg.append('defs');
       // Clip-path to constrain drawing to chart area
       const clipId = `clip-${Math.random().toString(36).slice(2)}`;
-      const clipPath = defs.append('clipPath').attr('id', clipId);
+      const clipPath = defs.append('clipPath').attr('id', clipId)
+        .attr('clipPathUnits', 'userSpaceOnUse');
       const clipRect = clipPath.append('rect').attr('x', 0).attr('y', 0).attr('width', 0).attr('height', 0);
       
       // Academic marker shapes
       const markerShapes = ['circle', 'square', 'triangle', 'diamond', 'inverted-triangle'];
-      const markerSize = 8;
+      const markerSize = 5;
 
       // Groups
       const gRoot = svg.append('g');
       const gGrid = gRoot.append('g').attr('class', 'grid');
       const gAxes = gRoot.append('g').attr('class', 'axes');
-      const gAreas = gRoot.append('g').attr('class', 'areas');
-      const gLines = gRoot.append('g').attr('class', 'lines');
-      const gPoints = gRoot.append('g').attr('class', 'points');
-      // Apply clipping to plotted elements (areas, lines, points)
-      gAreas.attr('clip-path', `url(#${clipId})`);
-      gLines.attr('clip-path', `url(#${clipId})`);
-      gPoints.attr('clip-path', `url(#${clipId})`);
+      // Dedicated plotting layer that will be clipped
+      const gPlot = gRoot.append('g').attr('class', 'plot');
+      const gAreas = gPlot.append('g').attr('class', 'areas');
+      const gLines = gPlot.append('g').attr('class', 'lines');
+      const gPoints = gPlot.append('g').attr('class', 'points');
+      // Apply clipping to the whole plotting group
+      gPlot.attr('clip-path', `url(#${clipId})`);
       const gHover = gRoot.append('g').attr('class', 'hover');
       const gLegend = gRoot.append('foreignObject').attr('class', 'legend');
 
@@ -253,8 +254,8 @@
       // Scales and layout
       let width = 800, height = 360;
       let margin = { top: 16, right: 28, bottom: 56, left: 64 };
-      let xScale = d3.scaleLinear();
-      let yScale = d3.scaleLinear();
+      let xScale = d3.scaleLinear().clamp(true);
+      let yScale = d3.scaleLinear().clamp(true);
 
       // Line generators - simple linear connections
       const lineGen = d3.line()
@@ -318,8 +319,23 @@
         const innerHeight = height - margin.top - margin.bottom;
         gRoot.attr('transform', `translate(${margin.left},${margin.top})`);
 
-        // Update clip rect to match inner plotting area
-        clipRect.attr('width', innerWidth).attr('height', innerHeight);
+        // Responsive legend layout: wrap to two lines on narrower screens
+        try {
+          const shouldWrapLegend = width < 1300;
+          if (legendInline && legendInline.style) {
+            legendInline.style.flexWrap = shouldWrapLegend ? 'wrap' : 'nowrap';
+            legendInline.style.rowGap = shouldWrapLegend ? '4px' : '';
+            legendInline.style.maxWidth = shouldWrapLegend ? Math.max(280, Math.round(width * 0.62)) + 'px' : 'unset';
+            legendInline.style.alignItems = shouldWrapLegend ? 'flex-start' : 'center';
+          }
+        } catch {}
+
+        // Update clip rect to match inner plotting area (coords local to gRoot)
+        clipRect
+          .attr('x', 0)
+          .attr('y', 0)
+          .attr('width', innerWidth)
+          .attr('height', innerHeight);
 
         xScale.range([0, innerWidth]);
         yScale.range([innerHeight, 0]);
@@ -442,8 +458,13 @@
         if (!isFinite(minStep) || !isFinite(maxStep)) { return; }
         xScale.domain([minStep, maxStep]);
         if (isRank) {
-          rankTickMax = Math.max(1, Math.round(maxVal));
-          yScale.domain([rankTickMax, 1]);
+          // Strict rank → arrondi au supérieur entier observé
+          // Average rank → forcer un plancher visuel à 4 pour une petite marge en bas
+          const bottom = isRankStrict
+            ? Math.max(1, Math.round(maxVal))
+            : Math.max(4, Math.ceil(maxVal + 0.001));
+          rankTickMax = bottom;
+          yScale.domain([rankTickMax, 1]).nice();
         } else {
           yScale.domain([minVal, maxVal]).nice();
         }
@@ -483,15 +504,15 @@
         // Draw lines
         const paths = gLines.selectAll('path.run-line').data(series, d=>d.run);
         paths.enter().append('path').attr('class','run-line').attr('fill','none').attr('stroke-width',2)
-          .attr('stroke', d=>d.color).attr('opacity',0.9)
+          .attr('stroke-linejoin','round').attr('stroke-linecap','round')
+          .attr('stroke', d=>d.color).attr('opacity',0.95)
           .attr('d', d=>lineGen(d.values))
           .merge(paths)
-          .transition().duration(200)
           .attr('stroke', d=>d.color)
           .attr('d', d=>lineGen(d.values));
         paths.exit().remove();
 
-        // Draw markers for each data point
+        // Draw markers for each data point (clipped with gPlot)
         gPoints.selectAll('*').remove();
         series.forEach((s, seriesIndex) => {
           const pointGroup = gPoints.selectAll(`.points-${seriesIndex}`)
@@ -499,11 +520,10 @@
             .join('g')
             .attr('class', `points-${seriesIndex}`)
             .attr('transform', d => `translate(${xScale(d.step)},${yScale(d.value)})`);
-          
           drawMarker(pointGroup, s.marker, markerSize)
             .attr('fill', s.color)
             .attr('stroke', s.color)
-            .attr('stroke-width', 1.5)
+            .attr('stroke-width', 1.2)
             .style('cursor', 'crosshair');
         });
 

@@ -15,7 +15,7 @@
   @media (max-width: 980px) { .filters-quad__grid { grid-template-columns: 1fr; } }
 
   .filters-quad__controls { display:flex; align-items:center; justify-content:center; gap:12px; margin: 6px 0 12px 0; flex-wrap:wrap; }
-  .filters-quad__controls label { font-size:11px; color: var(--muted-color); opacity: .8; display:flex; align-items:center; gap:8px; }
+  .filters-quad__controls label { font-size:14px; color: var(--text-color); font-weight:600; display:flex; align-items:center; gap:8px; }
   .filters-quad__controls select {
     font-size: 14px; padding: 8px 32px 8px 12px; border: 1px solid var(--border-color); border-radius: 10px;
     background-color: var(--surface-bg); color: var(--text-color);
@@ -28,7 +28,7 @@
   .filters-quad__controls select:hover { border-color: var(--primary-color); }
   .filters-quad__controls select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(232,137,171,.25); outline: none; }
 
-  .filters-quad__legend { display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; font-size:14px; color: var(--text-color); margin: 2px 0 10px 0; }
+  .filters-quad__legend { display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; font-size:12px; color: var(--text-color); margin: 2px 0 10px 0; }
   .filters-quad__legend .item { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
   .filters-quad__legend .swatch { width:10px; height:10px; border-radius:50%; display:inline-block; }
 
@@ -73,6 +73,26 @@
       s.addEventListener('load', onReady, { once: true }); if (window.d3) onReady();
     };
 
+    // Mapping métrique -> libellé lisible (aligné avec les autres embeds)
+    const metricTitleMapping = {
+      'docvqa_val_anls': 'DocVQA',
+      'infovqa_val_anls': 'InfoVQA',
+      'mme_total_score': 'MME Total',
+      'mmmu_val_mmmu_acc': 'MMMU',
+      'mmstar_average': 'MMStar',
+      'ocrbench_ocrbench_accuracy': 'OCRBench',
+      'scienceqa_exact_match': 'ScienceQA',
+      'textvqa_val_exact_match': 'TextVQA',
+      'average': 'Average',
+      'average_rank': 'Average Rank',
+      'ai2d_exact_match': 'AI2D',
+      'chartqa_relaxed_overall': 'ChartQA',
+      'seedbench_seed_all': 'SeedBench'
+    };
+    function getMetricDisplayName(metricKey){
+      return metricTitleMapping[metricKey] || metricKey;
+    }
+
     function initRunLine(cell){
       const d3 = window.d3;
       const csvPath = cell.getAttribute('data-csv');
@@ -107,14 +127,12 @@
       const xScale = d3.scaleLinear(); const yScale = d3.scaleLinear();
       const lineGen = d3.line().x(d => xScale(d.step)).y(d => yScale(d.value));
       let isRankStrictFlag = false; let rankTickMax = 1;
-      // Optional shared Y domain override (set from outside to sync the 4 charts)
-      let yDomainOverride = null; // { metricKey, domain:[min,max] | [max,1] for rank, isRankStrict, rankTickMax }
       
       // Colors and markers (match original embeds)
       const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#E889AB';
       const pool = [primary, '#4EA5B7', '#E38A42', '#CEC0FA', ...(d3.schemeTableau10||[])];
       const markerShapes = ['circle', 'square', 'triangle', 'diamond', 'inverted-triangle'];
-      const markerSize = 9;
+      const markerSize = 5;
       function drawMarker(selection, shape, size) {
         const s = size / 2;
         switch (shape) {
@@ -130,6 +148,24 @@
             return selection.append('path').attr('d', `M0,${s * 1.2} L${s * 1.1},${-s * 0.6} L${-s * 1.1},${-s * 0.6} Z`);
           default:
             return selection.append('circle').attr('r', s);
+        }
+      }
+      // Small SVG markup for marker shape (used in hover)
+      function shapeSvgMarkup(shape, color) {
+        const stroke = color;
+        switch (shape) {
+          case 'circle':
+            return `<svg width="14" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><circle r="5" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
+          case 'square':
+            return `<svg width="14" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><rect x="-5" y="-5" width="10" height="10" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
+          case 'triangle':
+            return `<svg width="14" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><path d="M0,-6 L5,3 L-5,3 Z" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
+          case 'diamond':
+            return `<svg width="14" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><path d="M0,-6 L6,0 L0,6 L-6,0 Z" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
+          case 'inverted-triangle':
+            return `<svg width="14" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><path d="M0,6 L5,-3 L-5,-3 Z" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
+          default:
+            return `<svg width="14" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><circle r="5" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
         }
       }
       // Ready signal for async load completion
@@ -165,8 +201,8 @@
         gAxes.selectAll('*').remove();
         let xAxis = d3.axisBottom(xScale).tickSizeOuter(0); xAxis = xAxis.ticks(8);
         const yAxis = d3.axisLeft(yScale).tickValues(yTicks).tickSizeOuter(0).tickFormat(isRankStrictFlag ? d3.format('d') : d3.format('.2f'));
-        gAxes.append('g').attr('transform', `translate(0,${innerHeight})`).call(xAxis).call(g=>{ g.selectAll('path, line').attr('stroke',axisColor); g.selectAll('text').attr('fill',tickColor).style('font-size','12px'); });
-        gAxes.append('g').call(yAxis).call(g=>{ g.selectAll('path, line').attr('stroke',axisColor); g.selectAll('text').attr('fill',tickColor).style('font-size','12px'); });
+        gAxes.append('g').attr('transform', `translate(0,${innerHeight})`).call(xAxis).call(g=>{ g.selectAll('path, line').attr('stroke',axisColor); g.selectAll('text').attr('fill',tickColor).style('font-size','11px'); });
+        gAxes.append('g').call(yAxis).call(g=>{ g.selectAll('path, line').attr('stroke',axisColor); g.selectAll('text').attr('fill',tickColor).style('font-size','11px'); });
 
         // Legend box (top-right)
         // Per-cell legend hidden; global legend is used
@@ -185,14 +221,7 @@
         runs.forEach(r => { (map[r]||[]).forEach(pt => { const v = isRankStrict ? Math.round(pt.value) : pt.value; minStep=Math.min(minStep,pt.step); maxStep=Math.max(maxStep,pt.step); maxVal=Math.max(maxVal,v); minVal=Math.min(minVal,v); }); });
         if (!isFinite(minStep) || !isFinite(maxStep)) return;
         xScale.domain([minStep, maxStep]); if (isRank) { rankTickMax = Math.max(1, Math.round(maxVal)); yScale.domain([rankTickMax, 1]); } else { yScale.domain([minVal, maxVal]).nice(); }
-        // Apply shared Y domain override if provided for this metric
-        if (yDomainOverride && yDomainOverride.metricKey === metricKey && Array.isArray(yDomainOverride.domain)) {
-          isRankStrictFlag = !!yDomainOverride.isRankStrict;
-          rankTickMax = yDomainOverride.rankTickMax != null ? yDomainOverride.rankTickMax : rankTickMax;
-          yScale.domain(yDomainOverride.domain);
-        } else {
-          isRankStrictFlag = isRankStrict;
-        }
+        isRankStrictFlag = isRankStrict;
 
         const { innerWidth, innerHeight } = updateScales();
 
@@ -237,24 +266,31 @@
         // Hover
         gHover.selectAll('*').remove();
         const overlay = gHover.append('rect').attr('fill','transparent').style('cursor','crosshair').attr('x',0).attr('y',0).attr('width', innerWidth).attr('height', innerHeight);
-        const axisColor = document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)';
-        const hoverLine = gHover.append('line').attr('stroke',axisColor).attr('stroke-width',1).attr('y1',0).attr('y2',innerHeight).style('display','none');
+        const hoverLine = gHover.append('line').attr('stroke','rgba(0,0,0,0.25)').attr('stroke-width',1).attr('y1',0).attr('y2',innerHeight).style('display','none');
         const stepSet = new Set(); series.forEach(s=>s.values.forEach(v=>stepSet.add(v.step))); const steps = Array.from(stepSet).sort((a,b)=>a-b);
-        function onMove(ev){ const [mx,my]=d3.pointer(ev, overlay.node()); const nearest = steps.reduce((best,s)=> Math.abs(s - xScale.invert(mx)) < Math.abs(best - xScale.invert(mx)) ? s : best, steps[0]); const xpx = xScale(nearest); hoverLine.attr('x1',xpx).attr('x2',xpx).style('display',null);
+        function onMove(ev){
+          const [mx,my] = d3.pointer(ev, overlay.node());
+          const nearest = steps.reduce((best,s)=> Math.abs(s - xScale.invert(mx)) < Math.abs(best - xScale.invert(mx)) ? s : best, steps[0]);
+          const xpx = xScale(nearest);
+          hoverLine.attr('x1',xpx).attr('x2',xpx).style('display',null);
           let html = `<div><strong>${titleText}</strong></div><div><strong>step</strong> ${nearest}</div>`;
-          const withPt = series.map(s=>{ const m=new Map(s.values.map(v=>[v.step,v])); const pt=m.get(nearest); return {s, pt}; }).filter(d=>d.pt && d.pt.value!=null);
-          withPt.sort((a,b)=> isRankStrictFlag ? (b.pt.value - a.pt.value) : (a.pt.value - b.pt.value));
-          const shapeSvg = (shape, color) => {
-            const size=9, half=size/2, cx=9, cy=7, sw='1';
-            if(shape==='circle') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><circle r="${half}" fill="${color}" stroke="${color}" stroke-width="${sw}"/></g></svg>`;
-            if(shape==='square') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><rect x="${-half}" y="${-half}" width="${size}" height="${size}" fill="${color}" stroke="${color}" stroke-width="${sw}"/></g></svg>`;
-            if(shape==='triangle') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><path d="M0,${-half*1.2} L${half*1.1},${half*0.6} L${-half*1.1},${half*0.6} Z" fill="${color}" stroke="${color}" stroke-width="${sw}"/></g></svg>`;
-            if(shape==='diamond') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><path d="M0,${-half*1.2} L${half*1.1},0 L0,${half*1.2} L${-half*1.1},0 Z" fill="${color}" stroke="${color}" stroke-width="${sw}"/></g></svg>`;
-            if(shape==='inverted-triangle') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><path d="M0,${half*1.2} L${half*1.1},${-half*0.6} L${-half*1.1},${-half*0.6} Z" fill="${color}" stroke="${color}" stroke-width="${sw}"/></g></svg>`;
-            return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(${cx},${cy})"><circle r="${half}" fill="${color}" stroke="${color}" stroke-width="${sw}"/></g></svg>`;
-          };
-          withPt.forEach(({s,pt})=>{ const fmt=(vv)=> (isRankStrictFlag? d3.format('d')(vv) : (+vv).toFixed(4)); const err=(pt.stderr!=null && isFinite(pt.stderr) && pt.stderr>0)? ` ± ${fmt(pt.stderr)}` : ''; html+=`<div style="display:flex;align-items:center;gap:6px;white-space:nowrap;">${shapeSvg(s.marker, s.color)}<strong>${s.run}</strong> ${fmt(pt.value)}${err}</div>`; });
-          tipInner.innerHTML = html; const offsetX=12, offsetY=12; tip.style.opacity='1'; tip.style.transform=`translate(${Math.round(mx+offsetX+margin.left)}px, ${Math.round(my+offsetY+margin.top)}px)`; }
+          const items = [];
+          series.forEach(s => {
+            const m = new Map(s.values.map(v=>[v.step, v]));
+            const pt = m.get(nearest);
+            if (pt && pt.value != null) items.push({ s, pt });
+          });
+          const fmt = (vv)=> (isRankStrictFlag ? d3.format('d')(vv) : (+vv).toFixed(4));
+          items.sort((a,b)=> isRankStrictFlag ? (b.pt.value - a.pt.value) : (a.pt.value - b.pt.value));
+          items.forEach(({ s, pt }) => {
+            const err = (pt.stderr!=null && isFinite(pt.stderr) && pt.stderr>0) ? ` ± ${fmt(pt.stderr)}` : '';
+            html += `<div style=\"display:flex;align-items:center;gap:6px;\">${shapeSvgMarkup(s.marker, s.color)}<strong>${s.run}</strong> ${fmt(pt.value)}${err}</div>`;
+          });
+          tipInner.innerHTML = html;
+          const offsetX=12, offsetY=12;
+          tip.style.opacity='1';
+          tip.style.transform=`translate(${Math.round(mx+offsetX+margin.left)}px, ${Math.round(my+offsetY+margin.top)}px)`;
+        }
         function onLeave(){ tip.style.opacity='0'; tip.style.transform='translate(-9999px, -9999px)'; hoverLine.style('display','none'); }
         overlay.on('mousemove', onMove).on('mouseleave', onLeave);
       }
@@ -278,7 +314,9 @@
           metricList = Array.from(new Set(rows.map(r=>r.metric))).sort();
           runList = Array.from(new Set(rows.map(r=>r.run))).sort(); runOrder = runList;
           metricList.forEach(m => { const map={}; runList.forEach(r=>map[r]=[]); rows.filter(r=>r.metric===m).forEach(r=>{ if(!isNaN(r.step)&&!isNaN(r.value)) map[r.run].push({ step:r.step, value:r.value, stderr:r.stderr }); }); dataByMetric.set(m, map); });
-          const def = metricList.find(m => /average_rank/i.test(m)) || metricList[0];
+          // Par défaut, privilégier average_rank, sinon premier dispo
+          const preferred = metricList.find(m => /average_rank/i.test(m)) || metricList.find(m => m === 'ai2d_exact_match');
+          const def = preferred || metricList[0];
           renderMetric(def);
           const ro = window.ResizeObserver ? new ResizeObserver(()=>renderMetric(def)) : null; if (ro) ro.observe(cell);
           if (typeof readyResolve === 'function') readyResolve();
@@ -293,21 +331,7 @@
       return {
         ready,
         getMetrics: () => metricList.slice(),
-        setMetric: (m) => { if (m) renderMetric(m); },
-        // Expose extent for a given metric so the host can compute a shared Y domain
-        getExtent: (metricKey) => {
-          const map = dataByMetric.get(metricKey) || {};
-          const runs = runOrder;
-          let maxVal = -Infinity, minVal = Infinity;
-          const isRank = /rank/i.test(metricKey); const isAverage = /average/i.test(metricKey); const isRankStrict = isRank && !isAverage;
-          runs.forEach(r => { (map[r]||[]).forEach(pt => { const v = isRankStrict ? Math.round(pt.value) : pt.value; if (isFinite(v)) { maxVal=Math.max(maxVal,v); minVal=Math.min(minVal,v); } }); });
-          if (!isFinite(minVal) || !isFinite(maxVal)) return null;
-          return { min: minVal, max: maxVal, isRankStrict };
-        },
-        // Allow host to set a shared Y domain override (persisted across resizes)
-        setYDomainOverride: (metricKey, domain, isRankStrict, sharedRankTickMax) => {
-          yDomainOverride = { metricKey, domain, isRankStrict: !!isRankStrict, rankTickMax: sharedRankTickMax };
-        }
+        setMetric: (m) => { if (m) renderMetric(m); }
       };
     }
 
@@ -340,37 +364,19 @@
         const intersect = (arrs) => arrs.reduce((acc, cur) => acc.filter(x => cur.includes(x)));
         let metrics = lists.length ? intersect(lists) : [];
         if (!metrics.length) { metrics = lists[0] || []; }
-        const def = metrics.find(m => /average_rank/i.test(m)) || metrics[0] || '';
+        // Par défaut: average_rank si présent (pas AI2D)
+        const def = (metrics.find(m => /average_rank/i.test(m)) || metrics[0] || '');
 
         let ctrl = host.querySelector('.filters-quad__controls');
         if (!ctrl) { ctrl = document.createElement('div'); ctrl.className = 'filters-quad__controls'; host.insertBefore(ctrl, host.firstChild); }
         ctrl.innerHTML = '';
         const label = document.createElement('label'); label.textContent = 'Metric';
         const select = document.createElement('select');
-        metrics.forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=m; select.appendChild(o); });
+        metrics.forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=getMetricDisplayName(m); select.appendChild(o); });
         if (def) select.value = def;
         label.appendChild(select); ctrl.appendChild(label);
 
-        const applyAll = (v) => {
-          // Compute shared Y domain across all instances for selected metric
-          const isRank = /rank/i.test(v); const isAverage = /average/i.test(v); const isRankStrict = isRank && !isAverage;
-          const extents = instances.map(i => (i && typeof i.getExtent === 'function') ? i.getExtent(v) : null).filter(Boolean);
-          if (!extents.length) { instances.forEach(i => i && typeof i.setMetric === 'function' && i.setMetric(v)); return; }
-          let globalMin = Math.min(...extents.map(e => e.min));
-          let globalMax = Math.max(...extents.map(e => e.max));
-          let domain, rankTickMax;
-          if (isRankStrict) {
-            rankTickMax = Math.max(1, Math.round(globalMax));
-            domain = [rankTickMax, 1];
-          } else {
-            domain = [globalMin, globalMax];
-          }
-          // Apply override then render
-          instances.forEach(i => {
-            if (i && typeof i.setYDomainOverride === 'function') i.setYDomainOverride(v, domain, isRankStrict, rankTickMax);
-            if (i && typeof i.setMetric === 'function') i.setMetric(v);
-          });
-        };
+        const applyAll = (v) => instances.forEach(i => i && typeof i.setMetric === 'function' && i.setMetric(v));
         if (def) applyAll(def);
         select.addEventListener('change', () => applyAll(select.value));
 
@@ -383,19 +389,18 @@
             if (r.ok && window.d3 && window.d3.csvParse) {
               const txt = await r.text();
               const rows = window.d3.csvParse(txt);
-              let runList = Array.from(new Set(rows.map(row => String(row.run||'').trim()).filter(Boolean)));
-              if (runList.includes('FineVision')) { runList = ['FineVision', ...runList.filter(r => r !== 'FineVision')]; }
+              const runList = Array.from(new Set(rows.map(row => String(row.run||'').trim()).filter(Boolean)));
               const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#E889AB';
               const pool = [primary, '#4EA5B7', '#E38A42', '#CEC0FA', ...((window.d3 && window.d3.schemeTableau10) ? window.d3.schemeTableau10 : ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ab'])];
               const markerShapes = ['circle', 'square', 'triangle', 'diamond', 'inverted-triangle'];
               const shapeSVG = (shape, color) => {
-                const size = 9; const s = size/2; const stroke = color;
-                if (shape === 'circle') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(9,7)"><circle r="${s}" fill="${color}" stroke="${stroke}" stroke-width="1" /></g></svg>`;
-                if (shape === 'square') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(9,7)"><rect x="${-s}" y="${-s}" width="${size}" height="${size}" fill="${color}" stroke="${stroke}" stroke-width="1" /></g></svg>`;
-                if (shape === 'triangle') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(9,7)"><path d="M0,${-s*1.2} L${s*1.1},${s*0.6} L${-s*1.1},${s*0.6} Z" fill="${color}" stroke="${stroke}" stroke-width="1" /></g></svg>`;
-                if (shape === 'diamond') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(9,7)"><path d="M0,${-s*1.2} L${s*1.1},0 L0,${s*1.2} L${-s*1.1},0 Z" fill="${color}" stroke="${stroke}" stroke-width="1" /></g></svg>`;
-                if (shape === 'inverted-triangle') return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(9,7)"><path d="M0,${s*1.2} L${s*1.1},${-s*0.6} L${-s*1.1},${-s*0.6} Z" fill="${color}" stroke="${stroke}" stroke-width="1" /></g></svg>`;
-                return `<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><g transform="translate(9,7)"><circle r="${s}" fill="${color}" stroke="${stroke}" stroke-width="1" /></g></svg>`;
+                const size = 12; const s = size/2; const stroke = color;
+                if (shape === 'circle') return `<svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><circle r="5" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
+                if (shape === 'square') return `<svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><rect x="-5" y="-5" width="10" height="10" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
+                if (shape === 'triangle') return `<svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><path d="M0,-6 L5,3 L-5,3 Z" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
+                if (shape === 'diamond') return `<svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><path d="M0,-6 L6,0 L0,6 L-6,0 Z" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
+                if (shape === 'inverted-triangle') return `<svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><path d="M0,6 L5,-3 L-5,-3 Z" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
+                return `<svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><circle r="5" fill="${color}" stroke="${stroke}" stroke-width="1" /></svg>`;
               };
               legendHost.innerHTML = runList.map((name, i)=> {
                 const color = pool[i % pool.length];

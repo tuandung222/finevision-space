@@ -1,6 +1,6 @@
-<div class="d3-line" style="width:100%;margin:10px 0;"></div>
+<div class="d3-line d3-embed--against-baselines" style="width:100%;margin:10px 0;"></div>
 <style>
-  .d3-line .d3-line__controls select {
+  .d3-embed--against-baselines .d3-line__controls select {
     font-size: 12px;
     padding: 8px 28px 8px 10px;
     border: 1px solid var(--border-color);
@@ -17,21 +17,21 @@
     cursor: pointer;
     transition: border-color .15s ease, box-shadow .15s ease;
   }
-  [data-theme="dark"] .d3-line .d3-line__controls select {
+  [data-theme="dark"] .d3-embed--against-baselines .d3-line__controls select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   }
-  .d3-line .d3-line__controls select:hover {
+  .d3-embed--against-baselines .d3-line__controls select:hover {
     border-color: var(--primary-color);
   }
-  .d3-line .d3-line__controls select:focus {
+  .d3-embed--against-baselines .d3-line__controls select:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(232,137,171,.25);
     outline: none;
   }
-  .d3-line .d3-line__controls label { gap: 8px; }
+  .d3-embed--against-baselines .d3-line__controls label { gap: 8px; }
 
   /* Range slider themed with --primary-color */
-  .d3-line .d3-line__controls input[type="range"] { 
+  .d3-embed--against-baselines .d3-line__controls input[type="range"] { 
     -webkit-appearance: none; 
     appearance: none; 
     width: 100%; 
@@ -40,12 +40,12 @@
     background: var(--border-color);
     outline: none;
   }
-  .d3-line .d3-line__controls input[type="range"]::-webkit-slider-runnable-track {
+  .d3-embed--against-baselines .d3-line__controls input[type="range"]::-webkit-slider-runnable-track {
     height: 6px; 
     background: transparent; 
     border-radius: 999px;
   }
-  .d3-line .d3-line__controls input[type="range"]::-webkit-slider-thumb {
+  .d3-embed--against-baselines .d3-line__controls input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none; 
     appearance: none; 
     width: 16px; 
@@ -56,12 +56,12 @@
     margin-top: -5px; 
     cursor: pointer;
   }
-  .d3-line .d3-line__controls input[type="range"]::-moz-range-track {
+  .d3-embed--against-baselines .d3-line__controls input[type="range"]::-moz-range-track {
     height: 6px; 
     background: transparent; 
     border-radius: 999px;
   }
-  .d3-line .d3-line__controls input[type="range"]::-moz-range-thumb {
+  .d3-embed--against-baselines .d3-line__controls input[type="range"]::-moz-range-thumb {
     width: 16px; 
     height: 16px; 
     border-radius: 50%; 
@@ -70,7 +70,7 @@
     cursor: pointer;
   }
   /* Improved line color via CSS */
-  .d3-line .lines path.improved { stroke: var(--primary-color); }
+  .d3-embed--against-baselines .lines path.improved { stroke: var(--primary-color); }
 </style>
 <script>
   (() => {
@@ -166,12 +166,16 @@
         .attr('width', '100%')
         .style('display', 'block');
 
-      // Add marker definitions for different shapes
+      // Add marker definitions and clipPath for chart area
       const defs = svg.append('defs');
+      const clipId = `clip-${Math.random().toString(36).slice(2)}`;
+      const clipPath = defs.append('clipPath').attr('id', clipId)
+        .attr('clipPathUnits', 'userSpaceOnUse');
+      const clipRect = clipPath.append('rect').attr('x', 0).attr('y', 0).attr('width', 0).attr('height', 0);
       
       // Academic marker shapes
       const markerShapes = ['circle', 'square', 'triangle', 'diamond', 'inverted-triangle'];
-      const markerSize = 8;
+      const markerSize = 5;
 
       // Groups
       const gRoot = svg.append('g');
@@ -181,6 +185,10 @@
       const gLines = gRoot.append('g').attr('class', 'lines');
       const gErrors = gRoot.append('g').attr('class', 'errors');
       const gPoints = gRoot.append('g').attr('class', 'points');
+      // Constrain plotted layers to inner chart area
+      gAreas.attr('clip-path', `url(#${clipId})`);
+      gLines.attr('clip-path', `url(#${clipId})`);
+      gPoints.attr('clip-path', `url(#${clipId})`);
       const gHover = gRoot.append('g').attr('class', 'hover');
       const gLegend = gRoot.append('foreignObject').attr('class', 'legend');
 
@@ -311,6 +319,13 @@
 
         xScale.range([0, innerWidth]);
         yScale.range([innerHeight, 0]);
+
+        // Update clip rect to match inner plotting area (coords of gRoot after translate)
+        clipRect
+          .attr('x', 0)
+          .attr('y', 0)
+          .attr('width', innerWidth)
+          .attr('height', innerHeight);
 
         // Compute Y ticks
         let yTicks = [];

@@ -168,8 +168,19 @@ async function main() {
   // filename can be provided, else computed from DOM (button) or page title later
   let outFileBase = (args.filename && String(args.filename).replace(/\.pdf$/i, '')) || 'article';
 
-  console.log('> Building Astro site…');
-  await run('npm', ['run', 'build']);
+  // Build only if dist/ does not exist
+  const distDir = resolve(cwd, 'dist');
+  let hasDist = false;
+  try {
+    const st = await fs.stat(distDir);
+    hasDist = st && st.isDirectory();
+  } catch {}
+  if (!hasDist) {
+    console.log('> Building Astro site…');
+    await run('npm', ['run', 'build']);
+  } else {
+    console.log('> Skipping build (dist/ exists)…');
+  }
 
   console.log('> Starting Astro preview…');
   // Start preview in its own process group so we can terminate all children reliably
@@ -263,6 +274,8 @@ async function main() {
           }
           function fixSvg(svg){
             if (!svg) return;
+            // Do not alter banner galaxy SVG sizing; it relies on explicit width/height
+            try { if (svg.closest && svg.closest('.d3-galaxy')) return; } catch {}
             if (isSmallSvg(svg)) { lockSmallSvgSize(svg); return; }
             try { svg.removeAttribute('width'); } catch {}
             try { svg.removeAttribute('height'); } catch {}
@@ -309,7 +322,6 @@ async function main() {
         // - Ensure an SVG background (CSS background on svg element)
         const cssHandle = await page.addStyleTag({ content: `
           .hero .points { mix-blend-mode: normal !important; }
-          .d3-galaxy svg { background: var(--surface-bg); }
         ` });
         const thumbPath = resolve(cwd, 'dist', 'thumb.jpg');
         await page.screenshot({ path: thumbPath, type: 'jpeg', quality: 85, fullPage: false });
@@ -360,6 +372,8 @@ async function main() {
             }
             function fixSvg(svg){
               if (!svg) return;
+              // Do not alter banner galaxy SVG sizing; it relies on explicit width/height
+              try { if (svg.closest && svg.closest('.d3-galaxy')) return; } catch {}
               if (isSmallSvg(svg)) { lockSmallSvgSize(svg); return; }
               try { svg.removeAttribute('width'); } catch {}
               try { svg.removeAttribute('height'); } catch {}
@@ -412,8 +426,9 @@ async function main() {
 
           /* Banner centering & visibility */
           .hero .points { mix-blend-mode: normal !important; }
-          .d3-galaxy { width: 100% !important; height: 300px; max-width: 980px !important; margin-left: auto !important; margin-right: auto !important; }
-          .d3-galaxy svg { background: var(--surface-bg); width: 100% !important; height: auto !important; }
+          /* Do NOT force a fixed height to avoid clipping in PDF */
+          .d3-galaxy { width: 100% !important; max-width: 980px !important; margin-left: auto !important; margin-right: auto !important; }
+          .d3-galaxy svg { width: 100% !important; height: auto !important; }
         ` });
       } catch {}
       await page.pdf({

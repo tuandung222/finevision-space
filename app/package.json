@@ -7,7 +7,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview --port 8080 --host",
-    "export:pdf": "astro build; node ./scripts/export-pdf.mjs"
+    "export:pdf": "node ./scripts/export-pdf.mjs"
   },
   "devDependencies": {
     "@astrojs/mdx": "^3.1.9",

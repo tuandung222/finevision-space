@@ -215,24 +215,6 @@ const { citationText, bibtex, licence, doi } = Astro.props as Props;
     }
   }
 
-  /* Avoid duplicate numbering: hide native list markers for CSL references only */
-  .references-block #references ol,
-  .references-block .references ol,
-  .references-block .bibliography ol {
-    list-style: none;
-    padding-left: 0;
-    margin-left: 0;
-  }
-
-  @media (min-width: 768px) {
-    .references-block #references ol,
-    .references-block .references ol,
-    .references-block .bibliography ol {
-      padding-left: 0;
-      margin-left: 0;
-    }
-  }
-
   .references-block li {
     margin-bottom: 1em;
   }

@@ -1,6 +1,6 @@
-// Minimal rehype plugin to wrap code blocks with a copy button and a language label
+// Minimal rehype plugin to wrap code blocks with a copy button
 // Exported as a standalone module to keep astro.config.mjs lean
-export default function rehypeCodeCopyAndLabel() {
+export default function rehypeCodeCopy() {
   return (tree) => {
     // Walk the tree; lightweight visitor to find <pre><code>
     const visit = (node, parent) => {
@@ -88,5 +88,7 @@ export default function rehypeCodeCopyAndLabel() {
     visit(tree, null);
   };
 }
+
+
 
 

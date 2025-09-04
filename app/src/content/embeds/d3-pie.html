@@ -93,7 +93,7 @@
       const CAPTION_GAP = 24;   // espace entre titre et donut
       const GAP_X = 20;         // espace entre colonnes
       const GAP_Y = 12;         // espace entre lignes
-      const LEGEND_HEIGHT = 44; // hauteur de la légende
+      const BASE_LEGEND_HEIGHT = 56; // hauteur minimale de la légende (augmentée pour éviter la troncature mobile)
       const TOP_OFFSET = 4;     // décalage vertical supplémentaire pour aérer le haut
       const updateSize = () => {
         width = container.clientWidth || 800;
@@ -103,15 +103,27 @@
       };
 
       function renderLegend(categories, colorOf, innerWidth, legendY){
-        const legendHeight = LEGEND_HEIGHT;
-        gLegend.attr('x', 0).attr('y', legendY).attr('width', innerWidth).attr('height', legendHeight);
+        const minHeight = BASE_LEGEND_HEIGHT;
+        gLegend.attr('x', 0).attr('y', legendY).attr('width', innerWidth);
         const root = gLegend.selectAll('div').data([0]).join('xhtml:div');
         root
-          .style('height', legendHeight + 'px')
+          .style('min-height', minHeight + 'px')
           .style('display', 'flex')
           .style('align-items', 'center')
           .style('justify-content', 'center');
         root.html(`<div class="items">${categories.map(c => `<div class="item"><span class="swatch" style="background:${colorOf(c)}"></span><span style="font-weight:500">${c}</span></div>`).join('')}</div>`);
+
+        // Mesurer la hauteur réelle (contenu potentiellement sur plusieurs lignes en mobile)
+        let measured = minHeight;
+        try {
+          const n = root.node();
+          const h1 = n && n.scrollHeight ? Math.ceil(n.scrollHeight) : 0;
+          const h2 = n ? Math.ceil(n.getBoundingClientRect().height) : 0;
+          measured = Math.max(minHeight, h1, h2);
+        } catch {}
+        gLegend.attr('height', measured);
+        root.style('height', measured + 'px');
+        return measured;
       }
 
       function drawPies(rows){
@@ -174,7 +186,7 @@
         const legendY = TOP_OFFSET + plotsHeight + 4;
         // Légende centrée globalement (pleine largeur du conteneur)
         gLegend.attr('x', 0).attr('width', innerWidth);
-        renderLegend(categories, colorOf, innerWidth, legendY);
+        const legendHeightUsed = renderLegend(categories, colorOf, innerWidth, legendY);
 
         const captions = new Map(METRICS.map(m => [m.key, `${m.title}`]));
 
@@ -232,7 +244,7 @@
         });
 
         // Définir la hauteur totale du SVG après avoir placé les éléments
-        const totalHeight = Math.ceil(margin.top + TOP_OFFSET + plotsHeight + 4 + LEGEND_HEIGHT + margin.bottom);
+        const totalHeight = Math.ceil(margin.top + TOP_OFFSET + plotsHeight + 4 + (typeof legendHeightUsed === 'number' ? legendHeightUsed : BASE_LEGEND_HEIGHT) + margin.bottom);
         svg.attr('height', totalHeight);
       }
 

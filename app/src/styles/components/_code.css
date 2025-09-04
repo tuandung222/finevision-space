@@ -12,6 +12,12 @@ code {
   line-height: 1.5;
 }
 
+p code, .note code {
+  white-space: nowrap;
+  padding: calc(var(--spacing-1)/3) calc(var(--spacing-1)/2);
+}
+
+
 /* ============================================================================ */
 /* Shiki code blocks */
 /* ============================================================================ */
@@ -142,6 +148,9 @@ section.content-grid pre code {
 /* ============================================================================ */
 /* Inside Accordions: remove padding and border on code containers */
 .accordion .astro-code { padding: 0; border: none; }
+.accordion .astro-code { margin-bottom: 0 !important; }
+.accordion pre { margin-bottom: 0 !important; }
+.accordion .code-card pre { margin: 0 !important; }
 
 /* ============================================================================ */
 /* Language/extension vignette (bottom-right, discreet) */
@@ -163,6 +172,24 @@ section.content-grid pre code {
   padding: 4px 6px;
   pointer-events: none;
 } */
- 
+
+/* Fallback if Shiki uses data-lang instead of data-language */
+/* .astro-code[data-lang]::after { content: attr(data-lang); }
+.astro-code[data-language="typescript"]::after { content: "ts"; }
+.astro-code[data-language="tsx"]::after { content: "tsx"; }
+.astro-code[data-language="javascript"]::after,
+.astro-code[data-language="node"]::after,
+.astro-code[data-language="jsx"]::after { content: "js"; }
+.astro-code[data-language="python"]::after { content: "py"; }
+.astro-code[data-language="bash"]::after,
+.astro-code[data-language="shell"]::after,
+.astro-code[data-language="sh"]::after { content: "sh"; }
+.astro-code[data-language="markdown"]::after { content: "md"; }
+.astro-code[data-language="yaml"]::after,
+.astro-code[data-language="yml"]::after { content: "yml"; }
+.astro-code[data-language="html"]::after { content: "html"; }
+.astro-code[data-language="css"]::after { content: "css"; }
+.astro-code[data-language="json"]::after { content: "json"; } */
+
 /* In Accordions, keep same bottom-right placement */
 .accordion .astro-code::after { right: 0; bottom: 0; }
