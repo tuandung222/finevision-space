@@ -69,8 +69,8 @@
 }
 
 .wide {
-  /* Target up to ~1100px while maintaining consistent margins */
-  width: min(1100px, calc(100vw - 2 * var(--content-padding-x)));
+  /* Target up to ~1400px while maintaining consistent margins */
+  width: min(1400px, calc(100vw - 2 * var(--content-padding-x)));
   margin-left: auto;
   margin-right: auto;
   /* Center relative to the main column */
