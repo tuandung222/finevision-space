@@ -323,13 +323,13 @@ async function main() {
         const cssHandle = await page.addStyleTag({ content: `
           .hero .points { mix-blend-mode: normal !important; }
         ` });
-        const thumbPath = resolve(cwd, 'dist', 'thumb.jpg');
+        const thumbPath = resolve(cwd, 'dist', 'thumb.auto.jpg');
         await page.screenshot({ path: thumbPath, type: 'jpeg', quality: 85, fullPage: false });
         // Also emit PNG for compatibility if needed
-        const thumbPngPath = resolve(cwd, 'dist', 'thumb.png');
+        const thumbPngPath = resolve(cwd, 'dist', 'thumb.auto.png');
         await page.screenshot({ path: thumbPngPath, type: 'png', fullPage: false });
-        const publicThumb = resolve(cwd, 'public', 'thumb.jpg');
-        const publicThumbPng = resolve(cwd, 'public', 'thumb.png');
+        const publicThumb = resolve(cwd, 'public', 'thumb.auto.jpg');
+        const publicThumbPng = resolve(cwd, 'public', 'thumb.auto.png');
         try { await fs.copyFile(thumbPath, publicThumb); } catch {}
         try { await fs.copyFile(thumbPngPath, publicThumbPng); } catch {}
         // Remove temporary style so PDF is unaffected
