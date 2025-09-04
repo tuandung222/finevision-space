@@ -1,6 +1,6 @@
 ---
-title: 'FineVision: Open Data is all you need'
-short_description: 'A new open dataset for training VLMs'
+title: 'FineVision: Open Data is All You Need'
+short_description: 'A new open-source dataset for training VLMs'
 emoji: 📝
 colorFrom: blue
 colorTo: indigo
