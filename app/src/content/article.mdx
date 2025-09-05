@@ -421,7 +421,7 @@ Even though our first proposal to judge the quality of multimodal data on a per-
 ---
 
 ### Should you train in multiple stages?
-The standard training procedure of a VLM usually follows at least two stages. First, you train only the connecting module, potentially in addition the image encoder, and then you train the whole model in a second stage. Some work has even introduced an additional Stage 2.5, where you train the full model on a smaller subset of higher quality data. To investigate this on small models, we experiment both with single, dual and triple stage training.
+The standard training procedure of a VLM usually follows at least two stages. First, you train only the connecting module, potentially in addition the image encoder, and then you train the whole model in a second stage. Some work has even introduced an additional Stage 2.5 [@li2025eagle2buildingposttraining], where you train the full model on a smaller subset of higher quality data. To investigate this on small models, we experiment both with single, dual and triple stage training.
 
 ---
 #### 1 Stage vs 2 Stages
