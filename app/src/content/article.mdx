@@ -62,7 +62,11 @@ from datasets import load_dataset, get_dataset_config_names
 
 # Get all subset names and load the first one
 available_subsets = get_dataset_config_names('HuggingFaceM4/FineVision')
-ds = load_dataset('HuggingFaceM4/FineVision', name=available_subsets[0], split='train', streaming=True)
+ds = load_dataset(
+  'HuggingFaceM4/FineVision',
+  name=available_subsets[0],
+  split='train', streaming=True,
+)
 
 # Inspect the first sample
 ds[0]
