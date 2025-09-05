@@ -25,3 +25,11 @@
     background: none!important;
     margin-bottom: var(--block-spacing-y) !important;
 }
+
+.footer {
+  display: none;
+}
+
+.content-grid {
+  margin-bottom: 60px!important;
+}

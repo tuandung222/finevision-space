@@ -198,7 +198,6 @@
     updatePalettes();
     const mo = new MutationObserver(() => updatePalettes());
     mo.observe(MODE.cssRoot, { attributes: true, attributeFilter: ['style', 'data-theme'] });
-    setInterval(updatePalettes, 400);
     window.ColorPalettes = {
       refresh: updatePalettes,
       getColors: (key) => {
