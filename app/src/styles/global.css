@@ -26,10 +26,6 @@
     margin-bottom: var(--block-spacing-y) !important;
 }
 
-.citation-block {
-  display: none;
-}
-
 .content-grid {
   margin-bottom: 60px!important;
 }
