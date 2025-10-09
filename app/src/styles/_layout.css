@@ -70,7 +70,7 @@
 
 .wide {
   /* Target up to ~1100px while staying within viewport minus page gutters */
-  width: min(1400px, 100vw - 32px);
+  width: min(1200px, 100vw - 32px);
   margin-left: calc(50% + var(--content-padding-x) * 2);
   transform: translateX(-50%);
 }

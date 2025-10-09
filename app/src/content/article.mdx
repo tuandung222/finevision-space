@@ -5,33 +5,57 @@ description: "A new open dataset for data-centric training of Vision Language Mo
 authors:
   - name: "Luis Wiedmann"
     url: "https://huggingface.co/lusxvr"
-    affiliations: [1]
+    affiliations: [1, 3]
   - name: "Orr Zohar"
     url: "https://huggingface.co/orrzohar"
-    affiliations: [1]
-  - name: "Andi Marafioti"
-    url: "https://huggingface.co/andito" 
-    affiliations: [1]
+    affiliations: [1,2]
   - name: "Amir Mahla"
     url: "https://huggingface.co/A-Mahla"
     affiliations: [1]
+  - name: "Xiaohan Wang"
+    url: "https://huggingface.co/xiaohanwang"
+    affiliations: [2]
+  - name: "Rui Li"
+    url: "https://huggingface.co/ruili"
+    affiliations: [2]
   - name: "Thibaud Frere"
     url: "https://huggingface.co/tfrere"
     affiliations: [1]
   - name: "Leandro von Werra"
     url: "https://huggingface.co/lvwerra"
     affiliations: [1]
+  - name: "Aritra Roy Gosthipaty"
+    url: "https://huggingface.co/ariG23498"
+    affiliations: [1]
+  - name: "Andrés Marafioti"
+    url: "https://huggingface.co/andito"
+    affiliations: [1]
 affiliations:
   - name: "Hugging Face"
     url: "https://huggingface.co"
+  - name: "Stanford University"
+    url: "https://stanford.edu"
+  - name: "Technical University Munich"
+    url: "https://tum.de"
 published: "Sep 4, 2025"
 tags:
+  - research-article-template
   - research
   - vision-language models
   - dataset
 seoThumbImage: "/thumb.png"
 tableOfContentsAutoCollapse: true
 ---
+
+Luis Wiedmann,
+Orr Zohar,
+Amir Mahla,
+Xiaohan Wang,
+Rui Li,
+Thibaud Frere,
+Leandro von Werra,
+Aritra Roy Gosthipaty,
+Andrés Marafioti
 
 import HtmlEmbed from "../components/HtmlEmbed.astro";
 import Wide from "../components/Wide.astro";
@@ -304,7 +328,6 @@ There are multiple ways to count the data in a multimodal dataset. The most comm
 After collecting and processing the data, we run multiple experiments and ablations to provide practical recommendations on how to train small, data-centric VLMs.
 
 ---
-<br/>
 <Wide>
   <HtmlEmbed src="d3-pie.html" id="pie" desc="Figure 1: Distribution of Categories in FineVision by Answer Tokens, Number of Samples, Turns, and Images. While the distributions differ a bit with the different metrics, FineVision provides a good baseline mixture, especially when judging by the number of images in the individual categories. Samples from Chart & Table usually lend themselves well to multi-turn conversations, since multiple similar questions can be asked for a single Chart. Samples from OCR QA often have a lot of answer tokens, since they aim at detailed document understanding, which are rarely answered with a short sentence." align="center" />
 </Wide>

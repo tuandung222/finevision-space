@@ -1,12 +1,98 @@
-<div class="d3-pie" style="width:100%;margin:10px 0;"></div>
+<div class="d3-pie-quad"></div>
 <style>
-  .d3-pie .legend { font-size: 12px; line-height: 1.35; color: var(--text-color); }
-  .d3-pie .legend .items { display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; justify-content:center; }
-  .d3-pie .legend .item { display:flex; align-items:center; gap:8px; white-space:nowrap; }
-  .d3-pie .legend .swatch { width:14px; height:14px; border-radius:3px; display:inline-block; border: 1px solid var(--border-color); }
-  .d3-pie .caption { font-size: 14px; font-weight: 800; fill: var(--text-color); }
-  .d3-pie .nodata { font-size: 12px; fill: var(--muted-color); }
-  .d3-pie .slice-label { font-size: 11px; font-weight: 700; fill: var(--text-color); paint-order: stroke; stroke: rgba(255,255,255,0.2); stroke-width: 3px; }
+  /* Layout piloté par container queries (par rapport au parent) */
+  .d3-pie-quad { container-type: inline-size; }
+  .d3-pie-quad .legend { width: 50%;margin: 0 auto; font-size: 12px; line-height: 1.35; color: var(--text-color); }
+  .d3-pie-quad .legend { margin-top: 24px; margin-bottom: 32px; }
+  .d3-pie-quad .legend .legend-title { display:block; text-align:center; font-weight:700; font-size:13px; margin-bottom:12px; color: var(--text-color); text-transform: uppercase; letter-spacing: 0.5px; }
+  .d3-pie-quad .legend .items { display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; justify-content:center; }
+  .d3-pie-quad .legend .item { display:flex; align-items:center; gap:8px; white-space:nowrap; }
+  .d3-pie-quad .legend .swatch { width:14px; height:14px; border-radius:3px; display:inline-block; border: 1px solid var(--border-color); }
+  .d3-pie-quad .caption { font-size: 14px; font-weight: 800; fill: var(--text-color); }
+  .d3-pie-quad .caption-subtitle { font-size: 11px; font-weight: 400; fill: var(--muted-color); }
+  .d3-pie-quad .nodata { font-size: 12px; fill: var(--muted-color); }
+  /* Ghost legend items when hovering slices */
+  .d3-pie-quad.hovering .legend .item.ghost { opacity: .35; }
+  .d3-pie-quad .slice-label { font-size: 11px; font-weight: 700; fill: var(--text-color); paint-order: stroke; stroke: var(--page-bg); stroke-width: 3px; }
+  /* Effet ghost synchronisé */
+  .d3-pie-quad .slice {
+    transition: opacity .15s ease;
+  }
+  .d3-pie-quad.hovering .slice.ghost {
+    opacity: .25;
+  }
+  /* HTML layout (not JS) for grid and cells */
+  .d3-pie-quad .plots-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+  /* Default (flow ~1280): 2 centered columns */
+  .content-grid .d3-pie-quad .plots-grid { width: 100%; }
+  .content-grid .d3-pie-quad .pie-cell { flex: 0 0 calc((100% - 20px)/2); }
+  /* In wide wrappers: aim for 4 columns if space allows */
+  .wide .d3-pie-quad .plots-grid,
+  .full-width .d3-pie-quad .plots-grid { width: 100%; }
+  .wide .d3-pie-quad .pie-cell,
+  .full-width .d3-pie-quad .pie-cell { flex: 0 0 calc((100% - 60px)/4); }
+  /* Force 2 columns in flow when parent ~1280px */
+  .content-grid .d3-pie-quad .plots-grid { width: 100%; }
+  .d3-pie-quad .pie-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 0 0 360px; /* Reduced from 360px to allow 4 columns in smaller spaces */
+  }
+  /* 4/2/1 colonnes en fonction de la largeur du parent */
+  /* @container (min-width: 740px) {
+    .d3-pie-quad .plots-grid { width: 740px; }
+  }
+  @container (max-width: 739.98px) {
+    .d3-pie-quad .plots-grid { width: 100%; }
+  } */
+  @media (max-width: 500px) {
+    .d3-pie-quad .pie-cell { flex: 0 0 100%; }
+  }
+  /* Tooltip styling aligned with filters-quad */
+  .d3-pie-quad .d3-tooltip {
+    z-index: var(--z-elevated);
+    backdrop-filter: saturate(1.12) blur(8px);
+  }
+  .d3-pie-quad .d3-tooltip__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 220px;
+  }
+  .d3-pie-quad .d3-tooltip__inner > div:first-child {
+    font-weight: 800;
+    letter-spacing: 0.1px;
+    margin-bottom: 0;
+  }
+  .d3-pie-quad .d3-tooltip__inner > div:nth-child(2) {
+    font-size: 11px;
+    color: var(--muted-color);
+    display: block;
+    margin-top: -4px;
+    margin-bottom: 2px;
+    letter-spacing: 0.1px;
+  }
+  .d3-pie-quad .d3-tooltip__inner > div:nth-child(n+3) {
+    padding-top: 6px;
+    border-top: 1px solid var(--border-color);
+  }
+  .d3-pie-quad .d3-tooltip__color-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid var(--border-color);
+  }
 </style>
 <script>
   (() => {
@@ -25,14 +111,14 @@
       const host = scriptEl && scriptEl.parentElement;
       let container = null;
       if (host && host.querySelector) {
-        container = host.querySelector('.d3-pie');
+        container = host.querySelector('.d3-pie-quad');
       }
       if (!container) {
         let sib = scriptEl && scriptEl.previousElementSibling;
-        while (sib && !(sib.classList && sib.classList.contains('d3-pie'))) {
+        while (sib && !(sib.classList && sib.classList.contains('d3-pie-quad'))) {
           sib = sib.previousElementSibling;
         }
-        container = sib || document.querySelector('.d3-pie');
+        container = sib || document.querySelector('.d3-pie-quad');
       }
       if (!container) return;
       if (container.dataset) { if (container.dataset.mounted === 'true') return; container.dataset.mounted = 'true'; }
@@ -44,24 +130,23 @@
         tip = document.createElement('div'); tip.className = 'd3-tooltip';
         Object.assign(tip.style, {
           position:'absolute', top:'0px', left:'0px', transform:'translate(-9999px, -9999px)', pointerEvents:'none',
-          padding:'8px 10px', borderRadius:'8px', fontSize:'12px', lineHeight:'1.35', border:'1px solid var(--border-color)',
-          background:'var(--surface-bg)', color:'var(--text-color)', boxShadow:'0 4px 24px rgba(0,0,0,.18)', opacity:'0', transition:'opacity .12s ease'
+          padding:'10px 12px', borderRadius:'12px', fontSize:'12px', lineHeight:'1.35', border:'1px solid var(--border-color)',
+          background:'var(--surface-bg)', color:'var(--text-color)', boxShadow:'0 8px 32px rgba(0,0,0,.28), 0 2px 8px rgba(0,0,0,.12)', opacity:'0', transition:'opacity .12s ease',
+          zIndex: 'var(--z-elevated)', backdropFilter: 'saturate(1.12) blur(8px)'
         });
         tipInner = document.createElement('div'); tipInner.className = 'd3-tooltip__inner'; tipInner.style.textAlign='left'; tip.appendChild(tipInner); container.appendChild(tip);
       } else { tipInner = tip.querySelector('.d3-tooltip__inner') || tip; }
 
-      // SVG scaffolding
-      const svg = d3.select(container).append('svg').attr('width','100%').style('display','block').attr('preserveAspectRatio','xMidYMin meet');
-      const gRoot = svg.append('g');
-      const gLegend = gRoot.append('foreignObject').attr('class','legend');
-      const gPlots = gRoot.append('g').attr('class','plots');
+      // HTML scaffolding: legend and plots grid as HTML; only pies are SVG
+      const legendHost = document.createElement('div'); legendHost.className = 'legend'; container.appendChild(legendHost);
+      const plotsHost = document.createElement('div'); plotsHost.className = 'plots-grid'; container.appendChild(plotsHost);
 
       // Metrics (order and labels as in the Python script)
       const METRICS = [
-        { key:'answer_total_tokens', name:'Answer Tokens', title:'Weighted by Answer Tokens', letter:'a' },
-        { key:'total_samples',       name:'Number of Samples', title:'Weighted by Number of Samples', letter:'b' },
-        { key:'total_turns',         name:'Number of Turns', title:'Weighted by Number of Turns', letter:'c' },
-        { key:'total_images',        name:'Number of Images', title:'Weighted by Number of Images', letter:'d' }
+        { key:'answer_total_tokens', name:'Answer Tokens', title:'Weighted by ', letter:'a' },
+        { key:'total_samples',       name:'Number of Samples', title:'Weighted by ', letter:'b' },
+        { key:'total_turns',         name:'Number of Turns', title:'Weighted by ', letter:'c' },
+        { key:'total_images',        name:'Number of Images', title:'Weighted by ', letter:'d' }
       ];
 
       // CSV: load from public path
@@ -89,125 +174,87 @@
       }));
 
       // Layout
-      let width=800; const margin = { top: 8, right: 24, bottom: 0, left: 24 };
-      const CAPTION_GAP = 24;   // espace entre titre et donut
-      const GAP_X = 20;         // espace entre colonnes
+      let width=800; const margin = { top: 8, right: 0, bottom: 0, left: 0 };
+      const CAPTION_GAP = 36;   // espace entre titre et donut
+      const GAP_X = 0;         // espace entre colonnes
       const GAP_Y = 12;         // espace entre lignes
-      const BASE_LEGEND_HEIGHT = 56; // hauteur minimale de la légende (augmentée pour éviter la troncature mobile)
-      const TOP_OFFSET = 4;     // décalage vertical supplémentaire pour aérer le haut
+      const TOP_OFFSET = 4;     // additional vertical offset to air out the top
+      const DONUT_INNER_RATIO = 0.28; // ratio du trou central (0 = pie plein, 0.5 = moitié)
+      // LEGEND_GAP supprimé: l'espacement est désormais géré en CSS via .d3-pie-quad .legend { margin-bottom }
+      const SVG_VPAD = 16;      // additional vertical padding inside SVGs to avoid cropping
+      
       const updateSize = () => {
         width = container.clientWidth || 800;
-        svg.attr('width', width);
-        gRoot.attr('transform', `translate(${margin.left},${margin.top})`);
         return { innerWidth: width - margin.left - margin.right };
       };
 
-      function renderLegend(categories, colorOf, innerWidth, legendY){
-        const minHeight = BASE_LEGEND_HEIGHT;
-        gLegend.attr('x', 0).attr('y', legendY).attr('width', innerWidth);
-        const root = gLegend.selectAll('div').data([0]).join('xhtml:div');
-        root
-          .style('min-height', minHeight + 'px')
-          .style('display', 'flex')
-          .style('align-items', 'center')
-          .style('justify-content', 'center');
-        root.html(`<div class="items">${categories.map(c => `<div class="item"><span class="swatch" style="background:${colorOf(c)}"></span><span style="font-weight:500">${c}</span></div>`).join('')}</div>`);
-
-        // Mesurer la hauteur réelle (contenu potentiellement sur plusieurs lignes en mobile)
-        let measured = minHeight;
-        try {
-          const n = root.node();
-          const h1 = n && n.scrollHeight ? Math.ceil(n.scrollHeight) : 0;
-          const h2 = n ? Math.ceil(n.getBoundingClientRect().height) : 0;
-          measured = Math.max(minHeight, h1, h2);
-        } catch {}
-        gLegend.attr('height', measured);
-        root.style('height', measured + 'px');
-        return measured;
+      function renderLegend(categories, colorOf){
+        legendHost.style.display = 'flex';
+        legendHost.style.flexDirection = 'column';
+        legendHost.style.alignItems = 'center';
+        legendHost.style.justifyContent = 'center';
+        legendHost.innerHTML = `<div class="legend-title">Legend</div><div class="items">${categories.map(c => `<div class="item" data-category="${c}"><span class=\"swatch\" style=\"background:${colorOf(c)}\"></span><span style=\"font-weight:500\">${c}</span></div>`).join('')}</div>`;
       }
 
       function drawPies(rows){
         const { innerWidth } = updateSize();
 
-        // Catégories (triées) + échelle de couleurs harmonisée avec banner.html
+        // Categories (sorted) + color scale harmonized with banner.html
         const categories = Array.from(new Set(rows.map(r => r.eagle_cathegory || 'Unknown'))).sort();
-        const color = d3.scaleOrdinal().domain(categories).range(d3.schemeTableau10);
+        const getCatColors = (n) => {
+          try { if (window.ColorPalettes && typeof window.ColorPalettes.getColors === 'function') return window.ColorPalettes.getColors('categorical', n); } catch(_) {}
+          return (d3.schemeTableau10 ? d3.schemeTableau10.slice(0, n) : ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ab'].slice(0, n));
+        };
+        const color = d3.scaleOrdinal().domain(categories).range(getCatColors(categories.length));
         const colorOf = (cat) => color(cat || 'Unknown');
 
-        // Clear plots
-        gPlots.selectAll('*').remove();
+        // Clear plots grid
+        plotsHost.innerHTML = '';
 
-        // Colonnes responsives: tenter 4 colonnes si possible, sinon descendre à 3/2/1
-        const selectCols = () => {
-          const MIN_RADIUS = 80; // garantir lisibilité
-          const allowed = [4, 2, 1]; // seulement 4 / 2 / 1 colonnes
-          // 1) essayer avec contrainte de rayon minimal
-          for (const c of allowed) {
-            const cw = (innerWidth - GAP_X * (c - 1)) / c;
-            const r = Math.max(30, Math.min(cw * 0.42, 120));
-            const gw = c * (r * 2) + (c - 1) * GAP_X;
-            if (gw <= innerWidth && r >= MIN_RADIUS) {
-              return { c, r };
-            }
-          }
-          // 2) sinon, première config qui tient (même si plus petit rayon)
-          for (const c of allowed) {
-            const cw = (innerWidth - GAP_X * (c - 1)) / c;
-            const r = Math.max(30, Math.min(cw * 0.42, 120));
-            const gw = c * (r * 2) + (c - 1) * GAP_X;
-            if (gw <= innerWidth) {
-              return { c, r };
-            }
-          }
-          // 3) fallback très petit écran
-          const r1 = Math.max(30, Math.min(innerWidth * 0.42, 120));
-          return { c: 1, r: r1 };
-        };
-        const { c: cols, r: radius } = selectCols();
-        const rowsCount = Math.ceil(METRICS.length / cols);
-        const innerR = Math.round(radius * 0.28);
-        // Calculer un espacement effectif pour occuper toute la largeur disponible
-        const baseGap = GAP_X;
-        const effectiveGapX = cols > 1
-          ? Math.max(baseGap, Math.floor((innerWidth - cols * (radius * 2)) / (cols - 1)))
-          : 0;
-        // largeur réelle de la grille avec l'espacement effectif
-        const gridWidth = cols * (radius * 2) + (cols - 1) * effectiveGapX;
-        const xOffset = Math.max(0, Math.floor((innerWidth - gridWidth) / 2));
-        gPlots.attr('transform', `translate(${xOffset},${TOP_OFFSET})`);
-        const perRowHeight = Math.ceil(radius * 2 + CAPTION_GAP + 20); // donut + caption + marge
-        const plotsHeight = rowsCount * perRowHeight + (rowsCount - 1) * GAP_Y;
+        // Légende au-dessus, centrée
+        renderLegend(categories, colorOf);
 
-        const pie = d3.pie().sort(null).value(d => d.value).padAngle(0.02);
+        // Rayon fixé selon la largeur cible d'une cellule (gérée par CSS)
+        const CELL_BASIS = 240; // doit correspondre à .pie-cell { flex-basis }
+        const radius = Math.max(80, Math.min(120, Math.floor(CELL_BASIS * 0.42)));
+        const innerR = Math.round(radius * DONUT_INNER_RATIO);
+        // Placement géré par CSS; ici on ne fait que l'espacement vertical minimal
+        plotsHost.style.position = 'relative';
+        plotsHost.style.marginTop = (TOP_OFFSET) + 'px';
+
+        const pie = d3.pie().sort(null).value(d => d.value).padAngle(0.005); // Réduit de 0.02 à 0.005
         const arc = d3.arc().innerRadius(innerR).outerRadius(radius).cornerRadius(3);
         const arcLabel = d3.arc().innerRadius((innerR + radius) / 2).outerRadius((innerR + radius) / 2);
 
-        // Positionner la légende sous les graphiques
-        const legendY = TOP_OFFSET + plotsHeight + 4;
-        // Légende centrée globalement (pleine largeur du conteneur)
-        gLegend.attr('x', 0).attr('width', innerWidth);
-        const legendHeightUsed = renderLegend(categories, colorOf, innerWidth, legendY);
-
-        const captions = new Map(METRICS.map(m => [m.key, `${m.title}`]));
+        // Légende déjà rendue au-dessus
 
         METRICS.forEach((metric, idx) => {
           // Aggregate by category
           const totals = new Map(); categories.forEach(c => totals.set(c, 0));
           rows.forEach(r => { totals.set(r.eagle_cathegory, totals.get(r.eagle_cathegory) + (r[metric.key] || 0)); });
           const values = categories.map(c => ({ category: c, value: totals.get(c) || 0 }));
-          const totalSum = d3.sum(values, d => d.value);
+          const nonZeroValues = values.filter(v => (v.value || 0) > 0);
+          const totalSum = d3.sum(nonZeroValues, d => d.value);
 
-          const rowIdx = Math.floor(idx / cols);
-          const colIdx = idx % cols;
-          const cx = colIdx * ((radius * 2) + effectiveGapX) + radius;
-          const cy = TOP_OFFSET + rowIdx * (perRowHeight + GAP_Y) + CAPTION_GAP + radius;
+          // Create HTML cell container
+          const cell = document.createElement('div');
+          cell.className = 'pie-cell';
+          cell.style.width = (radius * 2) + 'px';
+          cell.style.height = (radius * 2 + SVG_VPAD * 2 + CAPTION_GAP + 24) + 'px';
+          cell.style.display = 'flex';
+          cell.style.flexDirection = 'column';
+          cell.style.alignItems = 'center';
+          cell.style.justifyContent = 'flex-start';
+          plotsHost.appendChild(cell);
 
-          const gCell = gPlots.append('g').attr('transform', `translate(${cx},${cy})`);
+          // SVG pie inside cell
+          const svg = d3.select(cell).append('svg').attr('width', radius * 2).attr('height', radius * 2 + SVG_VPAD * 2).style('display','block');
+          const gCell = svg.append('g').attr('transform', `translate(${radius},${radius + SVG_VPAD})`);
 
-          if (!totalSum || totalSum <= 0) {
+          if (!totalSum || totalSum <= 0 || nonZeroValues.length === 0) {
             gCell.append('text').attr('class','nodata').attr('text-anchor','middle').attr('dy','0').text('No data for this metric');
           } else {
-            const data = pie(values);
+            const data = pie(nonZeroValues);
             const percent = (v) => (v / totalSum) * 100;
 
             // Slices
@@ -216,16 +263,32 @@
               .attr('fill', d => colorOf(d.data.category))
               .attr('stroke', 'var(--surface-bg)')
               .attr('stroke-width', 1.2)
+              .attr('data-category', d => d.data.category)
               .on('mouseenter', function(ev, d){
+                const hoveredCategory = d.data.category;
+                d3.select(container).classed('hovering', true);
+                d3.select(container).selectAll('path.slice').classed('ghost', s => (s.data && s.data.category) !== hoveredCategory);
+                // Ghost legend items that are not hovered
+                d3.select(legendHost).selectAll('.item').classed('ghost', function(){ return this.dataset && this.dataset.category !== hoveredCategory; });
                 d3.select(this).attr('stroke', 'rgba(0,0,0,0.85)').attr('stroke-width', 1);
                 const p = percent(d.data.value);
-                tipInner.innerHTML = `<div><strong>${d.data.category}</strong></div><div><strong>${metric.name}</strong> ${d.data.value.toLocaleString()}</div><div><strong>Share</strong> ${p.toFixed(1)}%</div>`;
+                const catColor = colorOf(d.data.category);
+                let html = `<div style="display:flex;align-items:center;gap:8px;white-space:nowrap;"><span class=\"d3-tooltip__color-dot\" style=\"background:${catColor}\"></span><strong>${d.data.category}</strong></div>`;
+                html += `<div>${metric.name}</div>`;
+                html += `<div style="display:flex;align-items:center;gap:6px;white-space:nowrap;"><strong>Value</strong><span style="margin-left:auto;text-align:right;">${d.data.value.toLocaleString()}</span></div>`;
+                tipInner.innerHTML = html;
                 tip.style.opacity = '1';
               })
               .on('mousemove', function(ev){
                 const [mx, my] = d3.pointer(ev, container); const offsetX = 12, offsetY = 12; tip.style.transform = `translate(${Math.round(mx+offsetX)}px, ${Math.round(my+offsetY)}px)`;
               })
-              .on('mouseleave', function(){ tip.style.opacity='0'; tip.style.transform='translate(-9999px, -9999px)'; d3.select(this).attr('stroke','var(--surface-bg)'); });
+              .on('mouseleave', function(){
+                tip.style.opacity='0'; tip.style.transform='translate(-9999px, -9999px)';
+                d3.select(container).classed('hovering', false);
+                d3.select(container).selectAll('path.slice').classed('ghost', false);
+                d3.select(legendHost).selectAll('.item').classed('ghost', false);
+                d3.select(this).attr('stroke','var(--surface-bg)');
+              });
 
             // Percentage labels (>= 3%)
             gCell.selectAll('text.slice-label').data(data.filter(d => percent(d.data.value) >= 3)).enter()
@@ -235,17 +298,21 @@
               .text(d => `${percent(d.data.value).toFixed(1)}%`);
           }
 
-          // Caption above donut
-          gCell.append('text')
-            .attr('class','caption')
-            .attr('text-anchor','middle')
-            .attr('y', -(radius + (CAPTION_GAP - 6)))
-            .text(captions.get(metric.key));
+          // HTML captions under the SVG (keep design)
+          const subtitleEl = document.createElement('div'); subtitleEl.className = 'caption-subtitle'; subtitleEl.textContent = metric.title; subtitleEl.style.textAlign = 'center'; cell.appendChild(subtitleEl);
+          const titleEl = document.createElement('div'); titleEl.className = 'caption'; titleEl.textContent = metric.name; titleEl.style.textAlign = 'center'; cell.appendChild(titleEl);
         });
 
-        // Définir la hauteur totale du SVG après avoir placé les éléments
-        const totalHeight = Math.ceil(margin.top + TOP_OFFSET + plotsHeight + 4 + (typeof legendHeightUsed === 'number' ? legendHeightUsed : BASE_LEGEND_HEIGHT) + margin.bottom);
-        svg.attr('height', totalHeight);
+        // Container height flows naturally with HTML; nothing to do
+
+        // Reset global hover/ghost when leaving the plots area
+        plotsHost.onmouseleave = () => {
+          tip.style.opacity='0';
+          tip.style.transform='translate(-9999px, -9999px)';
+          d3.select(container).classed('hovering', false);
+          d3.select(container).selectAll('path.slice').classed('ghost', false);
+          d3.select(legendHost).selectAll('.item').classed('ghost', false);
+        };
       }
 
       async function init(){
@@ -271,6 +338,8 @@
     if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', () => ensureD3(bootstrap), { once: true }); } else { ensureD3(bootstrap); }
   })();
 </script>
+
+
 
 
 
