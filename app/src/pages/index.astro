@@ -11,8 +11,14 @@ import 'katex/dist/katex.min.css';
 import '../styles/global.css';
 const articleFM = (ArticleMod as any).frontmatter ?? {};
 const Article = (ArticleMod as any).default;
-const docTitle = articleFM?.title ?? 'Untitled article';
-// Allow explicit line breaks in the title via "\n" or YAML newlines
+// Clean version without <br/> for metadata, SEO, citations
+const docTitle = (articleFM?.title ?? 'Untitled article')
+  .replace(/<br\s*\/?>/gi, ' ')
+  .replace(/\\n/g, ' ')
+  .replace(/\n/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim();
+// HTML version with <br/> for Hero H1 display only
 const docTitleHtml = (articleFM?.title ?? 'Untitled article')
   .replace(/\\n/g, '<br/>')
   .replace(/\n/g, '<br/>');
@@ -96,12 +102,8 @@ const imageAbs: string = fmOg && fmOg.startsWith('http')
 
 // ---- Build citation text & BibTeX from frontmatter ----
 const stripHtml = (text: string) => String(text || '').replace(/<[^>]*>/g, '');
-const rawTitle = articleFM?.title ?? 'Untitled article';
-const titleFlat = stripHtml(String(rawTitle))
-  .replace(/\\n/g, ' ')
-  .replace(/\n/g, ' ')
-  .replace(/\s+/g, ' ')
-  .trim();
+// Use docTitle (already cleaned) and strip any remaining HTML for BibTeX
+const titleFlat = stripHtml(docTitle);
 const extractYear = (val: string | undefined): number | undefined => {
   if (!val) return undefined;
   const d = new Date(val);
@@ -116,7 +118,7 @@ const citationText = `${citationAuthorsText}${year ? ` (${year})` : ''}. "${titl
 
 const authorsBib = authorNames.join(' and ');
 const keyAuthor = (authorNames[0] || 'article').split(/\s+/).slice(-1)[0].toLowerCase();
-const keyTitle = titleFlat.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 24);
+const keyTitle = titleFlat.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
 const bibKey = `${keyAuthor}${year ?? ''}_${keyTitle}`;
 const doi = (ArticleMod as any)?.frontmatter?.doi ? String((ArticleMod as any).frontmatter.doi) : undefined;
 const bibtex = `@misc{${bibKey},\n  title={${titleFlat}},\n  author={${authorsBib}},\n  ${year ? `year={${year}},\n  ` : ''}${doi ? `doi={${doi}}` : ''}\n}`;
