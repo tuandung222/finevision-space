@@ -121,7 +121,40 @@ const keyAuthor = (authorNames[0] || 'article').split(/\s+/).slice(-1)[0].toLowe
 const keyTitle = titleFlat.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
 const bibKey = `${keyAuthor}${year ?? ''}_${keyTitle}`;
 const doi = (ArticleMod as any)?.frontmatter?.doi ? String((ArticleMod as any).frontmatter.doi) : undefined;
-const bibtex = `@misc{${bibKey},\n  title={${titleFlat}},\n  author={${authorsBib}},\n  ${year ? `year={${year}},\n  ` : ''}${doi ? `doi={${doi}}` : ''}\n}`;
+
+// Extract arXiv information from DOI if it's an arXiv URL
+const extractArxivInfo = (doiStr: string | undefined) => {
+  if (!doiStr) return { eprint: undefined, primaryClass: undefined };
+  
+  // Check if it's an arXiv URL (like https://arxiv.org/abs/2510.17269)
+  const arxivMatch = doiStr.match(/arxiv\.org\/(?:abs|pdf)\/(\d{4}\.\d+)(?:v\d+)?/);
+  if (arxivMatch) {
+    return {
+      eprint: arxivMatch[1],
+      primaryClass: 'cs.CV' // You mentioned primaryClass={cs.CV} in your request
+    };
+  }
+  
+  return { eprint: undefined, primaryClass: undefined };
+};
+
+const { eprint: arxivEprint, primaryClass: arxivClass } = extractArxivInfo(doi);
+
+// Build BibTeX with proper formatting
+let bibtexFields = [
+  `title={${titleFlat}}`,
+  `author={${authorsBib}}`
+];
+
+if (year) bibtexFields.push(`year={${year}}`);
+if (doi) bibtexFields.push(`doi={${doi}}`);
+if (arxivEprint) {
+  bibtexFields.push(`eprint={${arxivEprint}}`);
+  bibtexFields.push(`archivePrefix={arXiv}`);
+  bibtexFields.push(`primaryClass={${arxivClass}}`);
+}
+
+const bibtex = `@misc{${bibKey},\n  ${bibtexFields.join(',\n  ')}\n}`;
 const envCollapse = false;
 const tableOfContentAutoCollapse = Boolean(
   (articleFM as any)?.tableOfContentAutoCollapse ?? (articleFM as any)?.tableOfContentsAutoCollapse ?? envCollapse
@@ -163,7 +196,7 @@ const licence = (articleFM as any)?.licence ?? (articleFM as any)?.license ?? (a
       </main>
     </section>
 
-    <Footer citationText={citationText} bibtex={bibtex} licence={licence} doi={doi} />
+    <Footer citationText={citationText} bibtex={bibtex} licence={licence} doi={doi} arxivEprint={arxivEprint} arxivClass={arxivClass} />
 
 
     <script>

@@ -4,8 +4,10 @@ interface Props {
   bibtex: string;
   licence?: string;
   doi?: string;
+  arxivEprint?: string;
+  arxivClass?: string;
 }
-const { citationText, bibtex, licence, doi } = Astro.props as Props;
+const { citationText, bibtex, licence, doi, arxivEprint, arxivClass } = Astro.props as Props;
 ---
 <footer class="footer">
   <div class="footer-inner">
@@ -17,11 +19,28 @@ const { citationText, bibtex, licence, doi } = Astro.props as Props;
       <p>BibTeX citation</p>
       <pre class="citation long">{bibtex}</pre>
     </section>
-    {doi && (
-      <section class="doi-block">
-        <h3>DOI</h3>
-        <p><a href={`https://doi.org/${doi}`} target="_blank" rel="noopener noreferrer">{doi}</a></p>
+    {/* Show arXiv section if we have arXiv info, otherwise show DOI section */}
+    {(arxivEprint || arxivClass) ? (
+      <section class="arxiv-block">
+        <h3>arXiv</h3>
+        {arxivEprint && (
+          <p>
+            <a href={`https://arxiv.org/abs/${arxivEprint}`} target="_blank" rel="noopener noreferrer">
+              {arxivClass ? `arXiv:${arxivEprint} [${arxivClass}]` : `arXiv:${arxivEprint}`}
+            </a>
+          </p>
+        )}
+        {!arxivEprint && arxivClass && (
+          <p>Class: {arxivClass}</p>
+        )}
       </section>
+    ) : (
+      doi && (
+        <section class="doi-block">
+          <h3>DOI</h3>
+          <p><a href={`https://doi.org/${doi}`} target="_blank" rel="noopener noreferrer">{doi}</a></p>
+        </section>
+      )
     )}
     {licence && (
       <section class="reuse-block">
@@ -129,14 +148,16 @@ const { citationText, bibtex, licence, doi } = Astro.props as Props;
   .citation-block,
   .references-block,
   .reuse-block,
-  .doi-block {
+  .doi-block,
+  .arxiv-block {
     display: contents;
   }
 
   .citation-block > h3,
   .references-block > h3,
   .reuse-block > h3,
-  .doi-block > h3 {
+  .doi-block > h3,
+  .arxiv-block > h3 {
     grid-column: 1;
     font-size: 15px;
     margin: 0;
@@ -147,7 +168,8 @@ const { citationText, bibtex, licence, doi } = Astro.props as Props;
   .citation-block > :not(h3),
   .references-block > :not(h3),
   .reuse-block > :not(h3),
-  .doi-block > :not(h3) {
+  .doi-block > :not(h3),
+  .arxiv-block > :not(h3) {
     grid-column: 2;
   }
 
@@ -166,6 +188,7 @@ const { citationText, bibtex, licence, doi } = Astro.props as Props;
   .citation-block p,
   .reuse-block p,
   .doi-block p,
+  .arxiv-block p,
   .footnotes ol,
   .footnotes ol p,
   .references {
