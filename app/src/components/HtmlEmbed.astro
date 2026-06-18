@@ -16,7 +16,14 @@ function resolveFragment(requested: string): string | null {
   return null;
 }
 
-const html = resolveFragment(src);
+let html = resolveFragment(src);
+if (html) {
+  const baseUrl = import.meta.env.BASE_URL;
+  html = html
+    .replaceAll("'/data/", `'${baseUrl}data/`)
+    .replaceAll('"/data/', `"${baseUrl}data/`)
+    .replaceAll('="/data/', `="${baseUrl}data/`);
+}
 const mountId = `frag-${Math.random().toString(36).slice(2)}`;
 ---
 { html ? (

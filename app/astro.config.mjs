@@ -18,6 +18,8 @@ import rehypeWrapTables from './plugins/rehype/wrap-tables.mjs';
 // Plugins moved to app/plugins/*
 
 export default defineConfig({
+  site: 'https://tuandung222.github.io',
+  base: '/finevision-space/',
   output: 'static',
   integrations: [
     mermaid({ theme: 'forest', autoTheme: true }),

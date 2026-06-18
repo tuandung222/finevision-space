@@ -177,7 +177,7 @@ const licence = (articleFM as any)?.licence ?? (articleFM as any)?.license ?? (a
         } catch {}
       })();
     </script>
-    <script is:inline src="/scripts/color-palettes.js"></script>
+    <script is:inline src={`${import.meta.env.BASE_URL}scripts/color-palettes.js`}></script>
     
     <!-- TO MANAGE PROPERLY -->
     <script src="https://cdn.plot.ly/plotly-3.0.0.min.js" charset="utf-8"></script>
