@@ -84,9 +84,9 @@
 
       // Controls
       const controls = document.createElement('div'); controls.className = 'controls';
-      const label = document.createElement('label'); label.textContent = 'Example';
+      const label = document.createElement('label'); label.textContent = 'Ví dụ';
       const select = document.createElement('select');
-      const EXAMPLE_LABELS = { '1': 'Photo', '2': 'Chart', '3': 'Drawing' };
+      const EXAMPLE_LABELS = { '1': 'Ảnh chụp', '2': 'Biểu đồ', '3': 'Hình vẽ' };
       ['1','2','3'].forEach((id)=>{ const o=document.createElement('option'); o.value=id; o.textContent=EXAMPLE_LABELS[id]; select.appendChild(o); });
       label.appendChild(select); controls.appendChild(label); container.appendChild(controls);
 
@@ -119,11 +119,11 @@
           const meta = document.createElement('div'); meta.className = 'meta';
           
           if (isQuery) {
-            const label = document.createElement('span'); label.className = 'value'; label.textContent = 'Query';
+            const label = document.createElement('span'); label.className = 'value'; label.textContent = 'Truy vấn';
             meta.appendChild(label);
           } else {
             const content = document.createElement('span');
-            content.innerHTML = `<span class="value">Match ${idx}</span><br><span class="label">Similarity: ${formatSim(sim)}</span>`;
+            content.innerHTML = `<span class="value">Kết quả khớp ${idx}</span><br><span class="label">Độ tương đồng: ${formatSim(sim)}</span>`;
             meta.appendChild(content);
           }
           

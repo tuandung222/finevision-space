@@ -145,7 +145,7 @@
       Object.assign(labelMetric.style, {
         fontSize: '11px', color: 'var(--muted-color)', opacity: 0.8, display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', padding: '6px 10px', marginLeft: 'auto'
       });
-      labelMetric.textContent = 'Metric';
+      labelMetric.textContent = 'Chỉ số';
       const selectMetric = document.createElement('select');
       Object.assign(selectMetric.style, { fontSize: '12px' });
       labelMetric.appendChild(selectMetric);
@@ -225,14 +225,14 @@
       const metricTitleMapping = {
         'docvqa_val_anls': 'DocVQA',
         'infovqa_val_anls': 'InfoVQA',
-        'mme_total_score': 'MME Total',
+        'mme_total_score': 'MME Tổng',
         'mmmu_val_mmmu_acc': 'MMMU',
         'mmstar_average': 'MMStar',
         'ocrbench_ocrbench_accuracy': 'OCRBench',
         'scienceqa_exact_match': 'ScienceQA',
         'textvqa_val_exact_match': 'TextVQA',
-        'average': 'Average',
-        'average_rank': 'Average Rank',
+        'average': 'Trung bình',
+        'average_rank': 'Thứ hạng trung bình',
         'ai2d_exact_match': 'AI2D',
         'chartqa_relaxed_overall': 'ChartQA',
         'seedbench_seed_all': 'SeedBench'
@@ -430,14 +430,14 @@
           .attr('text-anchor', 'middle')
           .style('font-size', '12px')
           .style('fill', tickColor)
-          .text('Step');
+          .text('Bước');
         gAxes.append('text')
           .attr('class', 'axis-label axis-label--y')
           .attr('text-anchor', 'middle')
           .attr('transform', `translate(${-44},${innerHeight/2}) rotate(-90)`) 
           .style('font-size', '12px')
           .style('fill', tickColor)
-          .text('Value');
+          .text('Giá trị');
 
         overlay.attr('x', 0).attr('y', 0).attr('width', innerWidth).attr('height', innerHeight);
         hoverLine.attr('y1', 0).attr('y2', innerHeight).attr('stroke', axisColor);
@@ -626,7 +626,7 @@
           // Theme-aware stroke already set in updateScales; don't override color here
           hoverLine.attr('x1', xpx).attr('x2', xpx).style('display', null);
           // Tooltip content trié par valeur au step hoveré
-          let html = `<div><strong>${getMetricDisplayName(metricKey)}</strong></div><div><strong>step</strong> ${nearest}</div>`;
+          let html = `<div><strong>${getMetricDisplayName(metricKey)}</strong></div><div><strong>bước</strong> ${nearest}</div>`;
           const items = [];
           series.forEach(s=>{
             const m = new Map(s.values.map(v=>[v.step, v]));

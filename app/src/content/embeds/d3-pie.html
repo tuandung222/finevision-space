@@ -143,10 +143,10 @@
 
       // Metrics (order and labels as in the Python script)
       const METRICS = [
-        { key:'answer_total_tokens', name:'Answer Tokens', title:'Weighted by ', letter:'a' },
-        { key:'total_samples',       name:'Number of Samples', title:'Weighted by ', letter:'b' },
-        { key:'total_turns',         name:'Number of Turns', title:'Weighted by ', letter:'c' },
-        { key:'total_images',        name:'Number of Images', title:'Weighted by ', letter:'d' }
+        { key:'answer_total_tokens', name:'Token câu trả lời', title:'Tính theo ', letter:'a' },
+        { key:'total_samples',       name:'Số lượng mẫu', title:'Tính theo ', letter:'b' },
+        { key:'total_turns',         name:'Số lượt hội thoại', title:'Tính theo ', letter:'c' },
+        { key:'total_images',        name:'Số lượng hình ảnh', title:'Tính theo ', letter:'d' }
       ];
 
       // CSV: load from public path
@@ -193,7 +193,7 @@
         legendHost.style.flexDirection = 'column';
         legendHost.style.alignItems = 'center';
         legendHost.style.justifyContent = 'center';
-        legendHost.innerHTML = `<div class="legend-title">Legend</div><div class="items">${categories.map(c => `<div class="item" data-category="${c}"><span class=\"swatch\" style=\"background:${colorOf(c)}\"></span><span style=\"font-weight:500\">${c}</span></div>`).join('')}</div>`;
+        legendHost.innerHTML = `<div class="legend-title">Chú giải</div><div class="items">${categories.map(c => `<div class="item" data-category="${c}"><span class=\"swatch\" style=\"background:${colorOf(c)}\"></span><span style=\"font-weight:500\">${c}</span></div>`).join('')}</div>`;
       }
 
       function drawPies(rows){
@@ -252,7 +252,7 @@
           const gCell = svg.append('g').attr('transform', `translate(${radius},${radius + SVG_VPAD})`);
 
           if (!totalSum || totalSum <= 0 || nonZeroValues.length === 0) {
-            gCell.append('text').attr('class','nodata').attr('text-anchor','middle').attr('dy','0').text('No data for this metric');
+            gCell.append('text').attr('class','nodata').attr('text-anchor','middle').attr('dy','0').text('Không có dữ liệu cho chỉ số này');
           } else {
             const data = pie(nonZeroValues);
             const percent = (v) => (v / totalSum) * 100;
@@ -275,7 +275,7 @@
                 const catColor = colorOf(d.data.category);
                 let html = `<div style="display:flex;align-items:center;gap:8px;white-space:nowrap;"><span class=\"d3-tooltip__color-dot\" style=\"background:${catColor}\"></span><strong>${d.data.category}</strong></div>`;
                 html += `<div>${metric.name}</div>`;
-                html += `<div style="display:flex;align-items:center;gap:6px;white-space:nowrap;"><strong>Value</strong><span style="margin-left:auto;text-align:right;">${d.data.value.toLocaleString()}</span></div>`;
+                html += `<div style="display:flex;align-items:center;gap:6px;white-space:nowrap;"><strong>Giá trị</strong><span style="margin-left:auto;text-align:right;">${d.data.value.toLocaleString()}</span></div>`;
                 tipInner.innerHTML = html;
                 tip.style.opacity = '1';
               })

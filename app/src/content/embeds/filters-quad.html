@@ -2,10 +2,10 @@
   <div class="filters-quad__controls" aria-label="Global chart controls"></div>
   <div class="filters-quad__legend" aria-label="Global legend"></div>
   <div class="filters-quad__grid">
-    <div class="quad-cell" data-title="Formatting Filter" data-csv="/data/formatting_filters.csv"></div>
-    <div class="quad-cell" data-title="Relevance Filter" data-csv="/data/relevance_filters.csv"></div>
-    <div class="quad-cell" data-title="Visual Dependency Filter" data-csv="/data/visual_dependency_filters.csv"></div>
-    <div class="quad-cell" data-title="Image Correspondence Filter" data-csv="/data/image_correspondence_filters.csv"></div>
+    <div class="quad-cell" data-title="Bộ lọc định dạng" data-csv="/data/formatting_filters.csv"></div>
+    <div class="quad-cell" data-title="Bộ lọc độ liên quan" data-csv="/data/relevance_filters.csv"></div>
+    <div class="quad-cell" data-title="Bộ lọc phụ thuộc thị giác" data-csv="/data/visual_dependency_filters.csv"></div>
+    <div class="quad-cell" data-title="Bộ lọc tương ứng hình ảnh" data-csv="/data/image_correspondence_filters.csv"></div>
   </div>
   <noscript>JavaScript is required to render these charts.</noscript>
 </div>
@@ -77,14 +77,14 @@
     const metricTitleMapping = {
       'docvqa_val_anls': 'DocVQA',
       'infovqa_val_anls': 'InfoVQA',
-      'mme_total_score': 'MME Total',
+      'mme_total_score': 'MME Tổng',
       'mmmu_val_mmmu_acc': 'MMMU',
       'mmstar_average': 'MMStar',
       'ocrbench_ocrbench_accuracy': 'OCRBench',
       'scienceqa_exact_match': 'ScienceQA',
       'textvqa_val_exact_match': 'TextVQA',
-      'average': 'Average',
-      'average_rank': 'Average Rank',
+      'average': 'Trung bình',
+      'average_rank': 'Thứ hạng trung bình',
       'ai2d_exact_match': 'AI2D',
       'chartqa_relaxed_overall': 'ChartQA',
       'seedbench_seed_all': 'SeedBench'
@@ -296,7 +296,7 @@
           const nearest = steps.reduce((best,s)=> Math.abs(s - xScale.invert(mx)) < Math.abs(best - xScale.invert(mx)) ? s : best, steps[0]);
           const xpx = xScale(nearest);
           hoverLine.attr('x1',xpx).attr('x2',xpx).style('display',null);
-          let html = `<div><strong>${titleText}</strong></div><div><strong>step</strong> ${nearest}</div>`;
+          let html = `<div><strong>${titleText}</strong></div><div><strong>bước</strong> ${nearest}</div>`;
           const items = [];
           series.forEach(s => {
             const m = new Map(s.values.map(v=>[v.step, v]));
@@ -407,7 +407,7 @@
         let ctrl = host.querySelector('.filters-quad__controls');
         if (!ctrl) { ctrl = document.createElement('div'); ctrl.className = 'filters-quad__controls'; host.insertBefore(ctrl, host.firstChild); }
         ctrl.innerHTML = '';
-        const label = document.createElement('label'); label.textContent = 'Metric';
+        const label = document.createElement('label'); label.textContent = 'Chỉ số';
         const select = document.createElement('select');
         metrics.forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=getMetricDisplayName(m); select.appendChild(o); });
         if (def) select.value = def;
